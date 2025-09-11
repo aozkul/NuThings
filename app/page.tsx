@@ -1,10 +1,11 @@
 // app/page.tsx
-import Link from "next/link";
 import {supabaseServer} from "@/src/lib/supabaseServer";
 import HeroCarousel from "@/src/components/HeroCarousel";
 import TestimonialsSection from "@/src/components/Testimonials";
 import ParallaxSection from "@/src/components/ParallaxSection";
 import type {CSSProperties} from "react";
+import FeaturedCarousel from "@/src/components/home/FeaturedCarousel";
+import MostLikedCarousel from "@/src/components/home/MostLikedCarousel";
 
 // Anasayfa SEO'yu Supabase settings'ten okur
 export async function generateMetadata() {
@@ -104,65 +105,6 @@ export default async function Page() {
     .from("categories")
     .select("*")
     .order("position", {ascending: true});
-
-  // Öne çıkan ürünler
-  const {data: featured} = await supabase
-    .from("products")
-    .select("id, name, price, image_url, image_alt, slug")
-    .eq("is_featured", true)
-    .limit(8);
-
-  // En çok beğenilen (product_stats üzerinden, sağlamlaştırılmış)
-  let mostLiked: any[] = [];
-  try {
-    // 1) Nested join (tercihli)
-    const {data: likedStats} = await supabase
-      .from("product_stats")
-      .select(
-        "likes, product_id, products(id, name, price, image_url, image_alt, slug)"
-      )
-      .gt("likes", 0)
-      .order("likes", {ascending: false})
-      .limit(8);
-
-    mostLiked = (likedStats || []).map((s: any) => s.products).filter(Boolean);
-
-    // 2) Fallback: iki adım
-    if (!mostLiked.length) {
-      const {data: stats} = await supabase
-        .from("product_stats")
-        .select("product_id, likes")
-        .gt("likes", 0)
-        .order("likes", {ascending: false})
-        .limit(8);
-      const ids = (stats || []).map((s: any) => s.product_id).filter(Boolean);
-
-      if (ids.length) {
-        const {data: prods} = await supabase
-          .from("products")
-          .select("id, name, price, image_url, image_alt, slug")
-          .in("id", ids as any);
-        const orderIndex = new Map(ids.map((id: string, i: number) => [id, i]));
-        mostLiked = (prods || []).sort(
-          (a: any, b: any) =>
-            (orderIndex.get(a.id) ?? 999) - (orderIndex.get(b.id) ?? 999)
-        );
-      }
-    }
-
-    // 3) Son çare
-    if (!mostLiked.length) {
-      const {data: viaProducts} = await supabase
-        .from("products")
-        .select("id, name, price, image_url, image_alt, slug, like_count")
-        .gt("like_count", 0)
-        .order("like_count", {ascending: false})
-        .limit(8);
-      mostLiked = viaProducts || [];
-    }
-  } catch {
-    mostLiked = [];
-  }
 
   // Parallax ayarları
   const PARALLAX_KEYS: SKey[] = [
@@ -284,38 +226,6 @@ export default async function Page() {
         },
       ];
 
-  const ProductCard = (p: any) => (
-    <Link
-      key={p.id}
-      href={`/products/${p.slug ?? p.id}`}
-    >
-      <div className="group rounded-2xl border p-3 hover:shadow-md transition">
-        <div className="aspect-[4/3] overflow-hidden rounded-xl bg-neutral-100">
-          {p.image_url ? (
-            <img
-              src={p.image_url}
-              alt={p.image_alt || p.name || "Ürün"}
-              className="h-full w-full object-cover group-hover:scale-[1.02] transition"
-            />
-          ) : (
-            <div className="h-full w-full grid place-items-center text-neutral-400">
-              Görsel yok
-            </div>
-          )}
-        </div>
-        <div className="mt-2">
-          <div className="font-medium">{p.name}</div>
-          <div className="text-sm text-neutral-600">
-            {typeof p.price === "number" ? `${p.price.toFixed(2)} €` : ""}
-          </div>
-        </div>
-      </div>
-    </Link>
-  );
-
-  const hasFeatured = !!(featured && featured.length);
-  const hasMostLiked = Array.isArray(mostLiked) && mostLiked.length > 0;
-
   // Parallax bileşeni — sadece HTML besliyoruz (plain değerler boş)
   const Parallax =
     settingsRows && settingsRows.length ? (
@@ -342,31 +252,17 @@ export default async function Page() {
 
       {position === "after_hero" && Parallax}
 
-      {/* Öne Çıkanlar */}
-      {hasFeatured && (
-        <section className="container-tight my-12">
-          <div className="mb-3">
-            <h2 className="text-xl font-semibold">Öne Çıkan Ürünler</h2>
-          </div>
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {featured!.map((p) => ProductCard(p))}
-          </div>
-        </section>
-      )}
+      {/* Öne Çıkan Ürünler – oklar + otomatik kaydırma */}
+      <div className="container-tight my-12">
+        <FeaturedCarousel/>
+      </div>
 
       {position === "after_featured" && Parallax}
 
-      {/* En Çok Beğenilen */}
-      {hasMostLiked && (
-        <section className="container-tight my-12">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-xl font-semibold">En Çok Beğenilen</h2>
-          </div>
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {mostLiked!.map((p) => ProductCard(p))}
-          </div>
-        </section>
-      )}
+      {/* En Çok Beğenilen – oklar + otomatik kaydırma */}
+      <div className="container-tight my-12">
+        <MostLikedCarousel/>
+      </div>
 
       <TestimonialsSection/>
 
