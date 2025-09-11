@@ -251,8 +251,12 @@ export default async function Page() {
     get(settings, "parallax_bg_url", "/parallax.jpg") || "/parallax.jpg";
   const overlayOpacity =
     Number(get(settings, "parallax_overlay_opacity", "0.35")) || 0.35;
-  const underlineGradient =
-    get(settings, "parallax_underline_gradient", "none") || "none";
+  const rawUnderline = (get(settings, "parallax_underline_gradient", "none") || "none").toLowerCase();
+
+  const underlineGradient: "none" | "warm" | "cool" | "brand" =
+    rawUnderline === "warm" || rawUnderline === "cool" || rawUnderline === "brand"
+      ? (rawUnderline as "warm" | "cool" | "brand")
+      : "none";
 
   // DB değerlerini deterministik & doğru şekilde HTML'e çevir
   const rawTitle = get(settings, "parallax_title", "Hoş geldiniz");
@@ -370,4 +374,3 @@ export default async function Page() {
     </div>
   );
 }
-      
