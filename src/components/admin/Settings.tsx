@@ -37,7 +37,7 @@ const STYLE_KEYS_MSG = {
 } as const;
 
 /** ---------- UI sabitleri ---------- */
-const FONT_OPTIONS = [
+const LOCAL_FONT_OPTIONS = [
   "inherit",
   "Inter, system-ui, sans-serif",
   "Arial, Helvetica, sans-serif",
@@ -47,6 +47,48 @@ const FONT_OPTIONS = [
   "\"Playfair Display\", serif",
   "Merriweather, serif",
 ];
+
+const GOOGLE_FONT_FAMILIES: Record<string, string> = {
+  "Inter": "Inter, system-ui, sans-serif",
+  "Roboto": "Roboto, system-ui, sans-serif",
+  "Playfair Display": "\"Playfair Display\", serif",
+  "Merriweather": "Merriweather, serif",
+  "Lora": "Lora, serif",
+  "Poppins": "Poppins, sans-serif",
+  "Montserrat": "Montserrat, sans-serif",
+  "Open Sans": "\"Open Sans\", sans-serif",
+  "Raleway": "Raleway, sans-serif",
+  "Lato": "Lato, sans-serif",
+  "Source Sans 3": "\"Source Sans 3\", sans-serif",
+  "Noto Serif": "\"Noto Serif\", serif",
+  "Noto Sans": "\"Noto Sans\", sans-serif",
+  "DM Sans": "\"DM Sans\", sans-serif",
+  "Josefin Sans": "\"Josefin Sans\", sans-serif",
+  "Oswald": "Oswald, sans-serif",
+  "Nunito": "Nunito, sans-serif",
+  "Libre Baskerville": "\"Libre Baskerville\", serif",
+  "Bebas Neue": "\"Bebas Neue\", cursive",
+  "Quicksand": "Quicksand, sans-serif",
+  // Handwriting (cursive) set
+  "Dancing Script": "\"Dancing Script\", cursive",
+  "Great Vibes": "\"Great Vibes\", cursive",
+  "Pacifico": "Pacifico, cursive",
+  "Satisfy": "Satisfy, cursive",
+  "Caveat": "Caveat, cursive",
+  "Shadows Into Light": "\"Shadows Into Light\", cursive",
+  "Amatic SC": "\"Amatic SC\", cursive",
+  "Handlee": "Handlee, cursive",
+  "Sacramento": "Sacramento, cursive",
+  "Courgette": "Courgette, cursive",
+  "Gloria Hallelujah": "\"Gloria Hallelujah\", cursive",
+  "Nothing You Could Do": "\"Nothing You Could Do\", cursive"
+};
+
+const FONT_OPTIONS = Array.from(new Set([
+  ...LOCAL_FONT_OPTIONS,
+  ...Object.values(GOOGLE_FONT_FAMILIES),
+])) as string[];
+
 
 const WEIGHT_OPTIONS = ["100", "300", "400", "500", "600", "700", "800", "900"];
 const LH_OPTIONS = ["1", "1.15", "1.25", "1.5", "1.75", "2"];
@@ -113,6 +155,30 @@ async function inferBucketNameFromDb(): Promise<string | null> {
 
 /** ---------- Component ---------- */
 export default function AdminSettings() {
+// Load Google Fonts for admin preview (one consolidated request)
+useEffect(() => {
+  try {
+    const id = "admin-google-fonts";
+    const weights = "wght@300;400;500;600;700;800;900";
+    const famParams = Object.keys(GOOGLE_FONT_FAMILIES)
+      .map((name) => `family=${encodeURIComponent(name)}:${weights}`)
+      .join("&");
+    const href = `https://fonts.googleapis.com/css2?${famParams}&display=swap`;
+
+    let link = document.getElementById(id) as HTMLLinkElement | null;
+    if (!link) {
+      link = document.createElement("link");
+      link.id = id;
+      link.rel = "stylesheet";
+      document.head.appendChild(link);
+    }
+    if (link.href !== href) link.href = href;
+  } catch (err) {
+    // Non-fatal: if Google Fonts fail to load, local fallbacks still work
+    console.warn("Google Fonts preload failed:", err);
+  }
+}, []);
+
   const [rows, setRows] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);

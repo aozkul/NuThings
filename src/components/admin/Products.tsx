@@ -1,6 +1,57 @@
-// src/components/admin/Products.tsx
 "use client";
+// src/components/admin/Products.tsx
+// --- Shared font options (local + Google) for Important Info editor ---
+const LOCAL_FONT_OPTIONS = [
+  "inherit",
+  "Inter, system-ui, sans-serif",
+  "Arial, Helvetica, sans-serif",
+  "Georgia, serif",
+  "\"Times New Roman\", Times, serif",
+  "Roboto, system-ui, sans-serif",
+  "\"Playfair Display\", serif",
+  "Merriweather, serif",
+];
 
+const GOOGLE_FONT_FAMILIES: Record<string, string> = {
+  "Inter": "Inter, system-ui, sans-serif",
+  "Roboto": "Roboto, system-ui, sans-serif",
+  "Playfair Display": "\"Playfair Display\", serif",
+  "Merriweather": "Merriweather, serif",
+  "Lora": "Lora, serif",
+  "Poppins": "Poppins, sans-serif",
+  "Montserrat": "Montserrat, sans-serif",
+  "Open Sans": "\"Open Sans\", sans-serif",
+  "Raleway": "Raleway, sans-serif",
+  "Lato": "Lato, sans-serif",
+  "Source Sans 3": "\"Source Sans 3\", sans-serif",
+  "Noto Serif": "\"Noto Serif\", serif",
+  "Noto Sans": "\"Noto Sans\", sans-serif",
+  "DM Sans": "\"DM Sans\", sans-serif",
+  "Josefin Sans": "\"Josefin Sans\", sans-serif",
+  "Oswald": "Oswald, sans-serif",
+  "Nunito": "Nunito, sans-serif",
+  "Libre Baskerville": "\"Libre Baskerville\", serif",
+  "Bebas Neue": "\"Bebas Neue\", cursive",
+  "Quicksand": "Quicksand, sans-serif",
+  // Handwriting (cursive)
+  "Dancing Script": "\"Dancing Script\", cursive",
+  "Great Vibes": "\"Great Vibes\", cursive",
+  "Pacifico": "Pacifico, cursive",
+  "Satisfy": "Satisfy, cursive",
+  "Caveat": "Caveat, cursive",
+  "Shadows Into Light": "\"Shadows Into Light\", cursive",
+  "Amatic SC": "\"Amatic SC\", cursive",
+  "Handlee": "Handlee, cursive",
+  "Sacramento": "Sacramento, cursive",
+  "Courgette": "Courgette, cursive",
+  "Gloria Hallelujah": "\"Gloria Hallelujah\", cursive",
+  "Nothing You Could Do": "\"Nothing You Could Do\", cursive"
+};
+
+const FONT_OPTIONS = Array.from(new Set([
+  ...LOCAL_FONT_OPTIONS,
+  ...Object.values(GOOGLE_FONT_FAMILIES),
+])) as string[];
 import {useEffect, useMemo, useRef, useState} from "react";
 import {supabase} from "@/src/lib/supabaseClient";
 
@@ -159,7 +210,31 @@ export default function ProductsAdmin() {
     load();
   }, []);
 
-  // Modal açıldığında editöre içeriği bir kez bas (uncontrolled)
+  
+
+  // Load Google Fonts for Important Info editor preview
+useEffect(() => {
+  try {
+    const id = "admin-google-fonts-products";
+    const weights = "wght@300;400;500;600;700;800;900";
+    const famParams = Object.keys(GOOGLE_FONT_FAMILIES)
+      .map((name) => `family=${encodeURIComponent(name)}:${weights}`)
+      .join("&");
+    const href = `https://fonts.googleapis.com/css2?${famParams}&display=swap`;
+    let link = document.getElementById(id) as HTMLLinkElement | null;
+    if (!link) {
+      link = document.createElement("link");
+      link.id = id;
+      link.rel = "stylesheet";
+      document.head.appendChild(link);
+    }
+    if (link.href !== href) link.href = href;
+  } catch (e) {
+    console.warn("Google Fonts preload failed (products):", e);
+  }
+}, []);
+
+// Modal açıldığında editöre içeriği bir kez bas (uncontrolled)
   useEffect(() => {
     if (open && impRef.current) {
       impRef.current.innerHTML = importantHTMLRef.current || "";
@@ -392,6 +467,21 @@ export default function ProductsAdmin() {
                     <option value="6">Çok Büyük</option>
                     <option value="7">En Büyük</option>
                   </select>
+
+{/* Font Ailesi */}
+<select
+  className="px-2 py-1 rounded border"
+  defaultValue="inherit"
+  onChange={(e) =>
+    runCmd(() =>
+      document.execCommand("fontName", false, (e.target as HTMLSelectElement).value)
+    )
+  }
+>
+  {FONT_OPTIONS.map((f, i) => (
+    <option key={`${i}-${f}`} value={f}>{f}</option>
+  ))}
+</select>
 
                   {/* Renk: sadece onChange */}
                   <input
