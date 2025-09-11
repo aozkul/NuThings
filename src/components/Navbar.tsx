@@ -90,6 +90,10 @@ export default function Navbar() {
               priority
               className="h-auto w-auto"
             />
+            <span
+              className="ml-2 whitespace-nowrap text-base md:text-lg leading-none font-bold tracking-tight text-neutral-900">
+              NuThings
+            </span>
           </Link>
 
           {/* Desktop nav */}
