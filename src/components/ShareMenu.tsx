@@ -1,70 +1,67 @@
-// src/components/ShareMenu.tsx
 "use client";
+import {useState} from "react";
+import {Share2} from "lucide-react";
 
-import React from "react";
-
-type Props = {
-    url: string;
+interface ShareMenuProps {
+    url: string;            // ürün detay sayfasından gelen relative veya absolute url
     productTitle?: string;
     label?: string;
-    /** 'native' => sadece Web Share API */
-    mode?: "native";
-    className?: string;
-};
+    mode?: "native" | "menu";
+}
 
 export default function ShareMenu({
                                       url,
                                       productTitle = "NuThings",
                                       label = "Paylaş",
                                       mode = "native",
-                                      className = "",
-                                  }: Props) {
-    const onShare = async () => {
-        try {
-            if (typeof navigator !== "undefined" && (navigator as any).share) {
-                await (navigator as any).share({
+                                  }: ShareMenuProps) {
+    const [error, setError] = useState<string | null>(null);
+
+    // --- URL normalize etme ---
+    const origin =
+        typeof window !== "undefined" ? window.location.origin : "";
+    const isAbsolute = /^https?:\/\//i.test(url);
+    const finalUrl = isAbsolute
+        ? url
+        : origin
+            ? url.startsWith("/")
+                ? origin + url
+                : origin + "/" + url
+            : url;
+    // --------------------------
+
+    const handleShare = async () => {
+        setError(null);
+        if (navigator.share && mode === "native") {
+            try {
+                await navigator.share({
                     title: productTitle,
-                    url,
+                    url: finalUrl,
                     text: productTitle,
                 });
-            } else {
-                // Masaüstü fallback (opsiyonel): e-posta aç
-                const mail = `mailto:?subject=${encodeURIComponent(productTitle)}&body=${encodeURIComponent(url)}`;
-                window.open(mail, "_blank");
+            } catch (err: any) {
+                if (err.name !== "AbortError") {
+                    setError("Paylaşım iptal edildi veya başarısız oldu.");
+                }
             }
-        } catch {
-            // kullanıcı iptal etti vs.
+        } else {
+            // Fallback → mailto
+            window.location.href = `mailto:?subject=${encodeURIComponent(
+                productTitle
+            )}&body=${encodeURIComponent(finalUrl)}`;
         }
     };
 
-    // Sadece tek buton (X/FB/WA/Copy yok)
     return (
-        <button
-            type="button"
-            onClick={onShare}
-            className={
-                "inline-flex items-center gap-2 rounded-xl border border-neutral-200 px-3 py-2 text-sm hover:bg-neutral-50 active:scale-[.98] " +
-                className
-            }
-            aria-label={label}
-        >
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
+        <div>
+            <button
+                onClick={handleShare}
+                className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-sm hover:bg-gray-100"
             >
-                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-                <polyline points="16 6 12 2 8 6"/>
-                <line x1="12" x2="12" y1="2" y2="15"/>
-            </svg>
-            {label}
-        </button>
+                <Share2 size={16}/>
+                {label}
+            </button>
+            {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+        </div>
     );
 }

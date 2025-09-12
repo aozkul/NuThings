@@ -220,7 +220,7 @@ export default async function ProductPage(
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <LikeButton productId={product.id} initialLikes={initialLikes}/>
             <ShareMenu
-              url={`https://nut-things.com/products/${product.slug || slug}`}
+              url={`/products/${product.slug || slug}`}
               productTitle={product.name}
               label={L_SHARE}
               mode="native"
