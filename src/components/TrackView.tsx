@@ -1,23 +1,57 @@
 "use client";
-import { useEffect, useMemo } from "react";
-import { supabase } from "@/src/lib/supabaseClient";
 
-export default function TrackView({ productId }: { productId: string }) {
-  const storageKey = useMemo(() => `viewed:${productId}:${new Date().toDateString()}`, [productId]);
+import {useEffect} from "react";
 
+type Props = {
+  /** Eski kullanım: <TrackView productId="..."/> */
+  productId?: string;
+  /** Yeni/alternatif kullanım: <TrackView id="..." slug="..."/> */
+  id?: string;
+  slug?: string | null;
+  /** İstersen ekstra alanlar gönderebilirsin */
+  meta?: Record<string, any>;
+};
+
+/**
+ * Görünmez izleme bileşeni.
+ * - Geriye dönük uyumluluk: hem `productId` hem `id` (ve opsiyonel `slug`) kabul eder.
+ * - /api/track-view varsa oraya best-effort beacon atar; yoksa sessizce devam eder.
+ */
+export default function TrackView({productId, id, slug, meta}: Props) {
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (localStorage.getItem(storageKey)) return;
-    localStorage.setItem(storageKey, "1");
+    const pid = productId ?? id;
+    if (!pid) return;
 
-    (async () => {
-      try {
-        await supabase.rpc("increment_click", { pid: productId });
-      } catch {
-        // sessiz geç
+    try {
+      const payload = {
+        productId: pid,
+        slug: slug ?? undefined,
+        path:
+          typeof window !== "undefined" ? window.location.pathname : undefined,
+        ref:
+          typeof document !== "undefined" ? document.referrer : undefined,
+        ts: Date.now(),
+        ...meta,
+      };
+
+      if (typeof navigator !== "undefined" && "sendBeacon" in navigator) {
+        const blob = new Blob([JSON.stringify(payload)], {
+          type: "application/json",
+        });
+        (navigator as any).sendBeacon("/api/track-view", blob);
+      } else {
+        fetch("/api/track-view", {
+          method: "POST",
+          headers: {"content-type": "application/json"},
+          body: JSON.stringify(payload),
+          keepalive: true,
+        }).catch(() => {
+        });
       }
-    })();
-  }, [storageKey, productId]);
+    } catch {
+      /* no-op */
+    }
+  }, [productId, id, slug, meta]);
 
   return null;
 }
