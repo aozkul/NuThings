@@ -284,7 +284,7 @@ export default function RelatedCarousel({seedSlug, limit = 12}: Props) {
                 <div className="flex gap-4">
                     {Array.from({length: 4}).map((_, i) => (
                         <div key={i} className="w-56 sm:w-64 md:w-72 flex-shrink-0">
-                            <div className="aspect-[4/5] rounded-2xl bg-neutral-100 animate-pulse"/>
+                            <div className="aspect-[1/1] rounded-2xl bg-neutral-100 animate-pulse"/>
                             <div className="mt-3 space-y-2">
                                 <div className="h-4 w-3/4 rounded bg-neutral-200 animate-pulse"/>
                                 <div className="h-4 w-1/3 rounded bg-neutral-200 animate-pulse"/>
@@ -338,7 +338,7 @@ export default function RelatedCarousel({seedSlug, limit = 12}: Props) {
                                 href={`/products/${p.slug}`}
                                 className="block overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm hover:shadow-md transition-shadow"
                             >
-                                <div className="relative aspect-[4/5] bg-neutral-50">
+                                <div className="relative aspect-[1/1] bg-neutral-50">
                                     {p.image_url ? (
                                         <Image
                                             src={p.image_url}

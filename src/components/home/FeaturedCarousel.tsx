@@ -184,8 +184,8 @@ export default function FeaturedCarousel() {
         </div>
         <div className="flex gap-4">
           {Array.from({length: 4}).map((_, i) => (
-            <div key={i} className="w-56 sm:w-64 md:w-72 flex-shrink-0">
-              <div className="aspect-[4/5] rounded-2xl bg-neutral-100 animate-pulse"/>
+            <div key={i} className="w-64 sm:w-72 md:w-80 flex-shrink-0">
+              <div className="aspect-[1/1] rounded-2xl bg-neutral-100 animate-pulse"/>
               <div className="mt-3 space-y-2">
                 <div className="h-4 w-3/4 rounded bg-neutral-200 animate-pulse"/>
                 <div className="h-4 w-1/3 rounded bg-neutral-200 animate-pulse"/>
@@ -233,7 +233,7 @@ export default function FeaturedCarousel() {
             <div
               key={p.id}
               ref={i === 0 ? firstSlide : undefined}
-              className="group relative flex-shrink-0 w-56 sm:w-64 md:w-72"
+              className="group relative flex-shrink-0 w-64 sm:w-72 md:w-80"
             >
               <div className="absolute left-2 top-2 z-10 flex items-center gap-2">
                 <div className="rounded-full px-2 py-1 text-xs font-medium text-white bg-gradient-to-r from-amber-500 to-orange-600 shadow">
@@ -253,16 +253,16 @@ export default function FeaturedCarousel() {
                 href={`/products/${p.slug}`}
                 className="block overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm hover:shadow-md transition-shadow"
               >
-                <div className="relative aspect-[4/5] bg-neutral-50">
+                <div className="relative aspect-[1/1] bg-neutral-50">
                   {p.image_url ? (
                     <Image
                       src={p.image_url}
                       alt={p.image_alt ?? p.name}
                       fill
-                      className="object-cover transition-transform duration-300 will-change-transform group-hover:scale-[1.03]"
+                      className="duration-300 group-hover:scale-[1.03] object-cover transition-transform will-change-transform"
                       sizes="(max-width: 768px) 60vw, (max-width: 1200px) 33vw, 25vw"
                       priority={i < 3}
-                    />
+                     className="object-cover"/>
                   ) : (
                     <div className="h-full w-full grid place-items-center text-neutral-400">Görsel yok</div>
                   )}
