@@ -10,7 +10,7 @@ export default function ProductGalleryLoader({
                                                productId,
                                                mainUrl,
                                                mainAlt,
-                                               debug = true,
+                                               debug = false,
                                              }: {
   productId: string;
   mainUrl?: string | null;
@@ -62,12 +62,12 @@ export default function ProductGalleryLoader({
 
   return (
     <div>
-      {debug && (
-        <div className="mb-2 text-xs text-neutral-500">
-          gallery: images=<b>{images.length}</b>
-          {error ? ` — error: ${error}` : ""}
-        </div>
-      )}
+      {/*{debug && (*/}
+      {/*  <div className="mb-2 text-xs text-neutral-500">*/}
+      {/*    gallery: images=<b>{images.length}</b>*/}
+      {/*    {error ? ` — error: ${error}` : ""}*/}
+      {/*  </div>*/}
+      {/*)}*/}
       <ProductGallery
         mainUrl={mainUrl || null}
         mainAlt={mainAlt || null}
