@@ -8,7 +8,7 @@ import {supabase} from "@/src/lib/supabaseClient";
 import type {Product} from "@/src/lib/types";
 import {useI18n} from "@/src/i18n/provider";
 
-type P = Pick<Product, "id" | "name" | "slug" | "price" | "image_url" | "image_alt"> & { likes?: number };
+type P = Pick<Product, "id" | "name" | "slug" | "price" | "image_url" | "image_alt"> & { likes?: number, is_featured?: boolean };
 
 const GAP_PX = 16;
 const AUTO_MS = 3500;
@@ -64,7 +64,7 @@ export default function MostLikedCarousel() {
         const ids = stats.map(s => s.product_id).filter(Boolean);
         const { data: prods } = await supabase
           .from("products")
-          .select("id,name,slug,price,image_url,image_alt")
+          .select("id,name,slug,price,image_url,image_alt,is_featured")
           .in("id", ids as any);
 
         if (prods) {
@@ -250,14 +250,8 @@ export default function MostLikedCarousel() {
               ref={i === 0 ? firstSlide : undefined}
               className="group relative flex-shrink-0 w-56 sm:w-64 md:w-72"
             >
-              <div className="absolute left-2 top-2 z-10 flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-semibold text-white bg-gradient-to-r from-fuchsia-600 to-violet-600 shadow">
-                <svg viewBox="0 0 24 24" className="h-3 w-3" fill="currentColor" aria-hidden="true">
-                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 6 4 4 6.5 4c1.74 0 3.41 1.01 4.22 2.61C11.09 5.01 12.76 4 14.5 4 17 4 19 6 19 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                </svg>
-                {typeof (p as any).likes === "number" ? `${(p as any).likes}` : "Popüler"}
-              </div>
-
-              <Link
+              <div className="absolute left-2 top-2 z-10 flex items-center gap-2">  <div className="rounded-full px-2 py-1 text-xs font-medium text-white bg-gradient-to-r from-fuchsia-600 to-violet-600 shadow flex items-center gap-1">    <svg viewBox="0 0 24 24" className="h-3 w-3" fill="currentColor" aria-hidden="true">      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 6 4 4 6.5 4c1.74 0 3.41 1.01 4.22 2.61C11.09 5.01 12.76 4 14.5 4 17 4 19 6 19 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>    </svg>    {typeof (p as any).likes === "number" ? `${(p as any).likes}` : "Popüler"}  </div>  {(p as any).is_featured ? (    <div className="rounded-full px-2 py-1 text-xs font-medium text-white bg-gradient-to-r from-amber-500 to-orange-600 shadow">      {T("featured_badge", "Öne Çıkan")}    </div>  ) : null}</div>
+<Link
                 href={`/products/${p.slug}`}
                 className="block overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm hover:shadow-md transition-shadow"
               >

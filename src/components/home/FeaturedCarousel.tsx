@@ -7,7 +7,7 @@ import {supabase} from "@/src/lib/supabaseClient";
 import type {Product} from "@/src/lib/types";
 import {useI18n} from "@/src/i18n/provider";
 
-type FP = Pick<Product, "id" | "name" | "slug" | "price" | "image_url" | "image_alt">;
+type FP = Pick<Product, "id" | "name" | "slug" | "price" | "image_url" | "image_alt"> & { likes?: number };
 
 const GAP_PX = 16;
 const AUTO_MS = 3500;
@@ -56,7 +56,18 @@ export default function FeaturedCarousel() {
         .order("updated_at", {ascending: false})
         .limit(24);
       if (!mounted) return;
-      setItems((data ?? []) as FP[]);
+      const ids = (data ?? []).map((d:any)=>d.id);
+      let likesMap = new Map<string, number>();
+      if (ids.length) {
+        const { data: stats } = await supabase
+          .from("product_stats")
+          .select("product_id, likes")
+          .in("product_id", ids)
+          .gt("likes", 0);
+        likesMap = new Map((stats ?? []).map((s:any)=>[s.product_id, s.likes]));
+      }
+      const withLikes = (data ?? []).map((p:any)=>({ ...p, likes: likesMap.get(p.id) }));
+      setItems(withLikes as FP[]);
       setLoading(false);
     })();
     return () => {
@@ -224,9 +235,18 @@ export default function FeaturedCarousel() {
               ref={i === 0 ? firstSlide : undefined}
               className="group relative flex-shrink-0 w-56 sm:w-64 md:w-72"
             >
-              <div
-                className="absolute left-2 top-2 z-10 rounded-full px-2 py-1 text-[10px] font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-600 shadow">
-                {T("featured_badge", "Öne Çıkan")}
+              <div className="absolute left-2 top-2 z-10 flex items-center gap-2">
+                <div className="rounded-full px-2 py-1 text-xs font-medium text-white bg-gradient-to-r from-amber-500 to-orange-600 shadow">
+                  {T("featured_badge", "Öne Çıkan")}
+                </div>
+                {(p as any).likes ? (
+                  <div className="rounded-full px-2 py-1 text-xs font-medium text-white bg-gradient-to-r from-fuchsia-600 to-violet-600 shadow flex items-center gap-1">
+                    <svg viewBox="0 0 24 24" className="h-3 w-3" fill="currentColor" aria-hidden="true">
+                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 6 4 4 6.5 4c1.74 0 3.41 1.01 4.22 2.61C11.09 5.01 12.76 4 14.5 4 17 4 19 6 19 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                    </svg>
+                    {(p as any).likes}
+                  </div>
+                ) : null}
               </div>
 
               <Link
