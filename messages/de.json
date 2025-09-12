@@ -4,7 +4,15 @@
     "featured_badge": "Hervorgehoben"
   },
   "product": {
-    "related_title": "Ähnliche Produkte"
+    "related_title": "Ähnliche Produkte",
+    "important_info": "Wichtige Information",
+    "share": "Teilen",
+    "stock_status": "Lagerstatus",
+    "stock_in": "Auf Lager",
+    "stock_low": "Niedriger Bestand",
+    "stock_out": "Ausverkauft",
+    "category": "Kategorie",
+    "sku": "Artikelnummer"
   },
   "navbar": {
     "products": "Produkte",
@@ -12,6 +20,14 @@
     "contact": "Kontakt"
   },
   "common": {
+    "important_info": "Wichtige Information",
+    "share": "Teilen",
+    "stock_status": "Lagerstatus",
+    "stock_in": "Auf Lager",
+    "stock_low": "Niedriger Bestand",
+    "stock_out": "Ausverkauft",
+    "category": "Kategorie",
+    "sku": "Artikelnummer",
     "mesajınız_alındı_teşekkürler": "Ihre Nachricht wurde erhalten. Vielen Dank!",
     "mesaj_gönderilemedi": "Nachricht konnte nicht gesendet werden",
     "görsel_yok": "Kein Bild",

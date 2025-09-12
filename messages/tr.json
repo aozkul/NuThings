@@ -4,7 +4,15 @@
     "featured_badge": "Öne Çıkan"
   },
   "product": {
-    "related_title": "Benzer Ürünler"
+    "related_title": "Benzer Ürünler",
+    "important_info": "Önemli Bilgi",
+    "share": "Paylaş",
+    "stock_status": "Stok Durumu",
+    "stock_in": "Stokta",
+    "stock_low": "Az Stok",
+    "stock_out": "Tükendi",
+    "category": "Kategori",
+    "sku": "Ürün Kodu"
   },
   "navbar": {
     "products": "Ürünler",
@@ -12,6 +20,14 @@
     "contact": "İletişim"
   },
   "common": {
+    "important_info": "Önemli Bilgi",
+    "share": "Paylaş",
+    "stock_status": "Stok Durumu",
+    "stock_in": "Stokta",
+    "stock_low": "Az Stok",
+    "stock_out": "Tükendi",
+    "category": "Kategori",
+    "sku": "Ürün Kodu",
     "mesajınız_alındı_teşekkürler": "Mesajınız alındı. Teşekkürler!",
     "mesaj_gönderilemedi": "Mesaj gönderilemedi",
     "görsel_yok": "Görsel yok",

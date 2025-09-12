@@ -4,7 +4,15 @@
     "featured_badge": "Featured"
   },
   "product": {
-    "related_title": "Related Products"
+    "related_title": "Related Products",
+    "important_info": "Important Information",
+    "share": "Share",
+    "stock_status": "Stock Status",
+    "stock_in": "In Stock",
+    "stock_low": "Low Stock",
+    "stock_out": "Out of Stock",
+    "category": "Category",
+    "sku": "SKU"
   },
   "navbar": {
     "products": "Products",
@@ -12,6 +20,14 @@
     "contact": "Contact"
   },
   "common": {
+    "important_info": "Important Information",
+    "share": "Share",
+    "stock_status": "Stock Status",
+    "stock_in": "In Stock",
+    "stock_low": "Low Stock",
+    "stock_out": "Out of Stock",
+    "category": "Category",
+    "sku": "SKU",
     "mesajınız_alındı_teşekkürler": "Your message has been received. Thank you!",
     "mesaj_gönderilemedi": "Message could not be sent",
     "görsel_yok": "No image",
