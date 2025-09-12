@@ -2,6 +2,9 @@
   "home": {
     "welcome": "Willkommen bei Nut Things"
   },
+  "product": {
+    "related_title": "Ähnliche Produkte"
+  },
   "navbar": {
     "products": "Produkte",
     "about": "Über uns",

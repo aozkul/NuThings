@@ -2,6 +2,9 @@
   "home": {
     "welcome": "Nut Things'e Hoşgeldiniz"
   },
+  "product": {
+    "related_title": "Benzer Ürünler"
+  },
   "navbar": {
     "products": "Ürünler",
     "about": "Hakkımızda",

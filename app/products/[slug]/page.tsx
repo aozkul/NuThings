@@ -8,11 +8,12 @@ import {supabaseServer} from "@/src/lib/supabaseServer";
 
 // — Sende zaten var: aynıları kullanıyoruz
 import ProductGallery from "@/src/components/ProductGallery";
-import ProductCard from "@/src/components/ProductCard";
+// import ProductCard from "@/src/components/ProductCard"; // KALDIRILDI
 import LikeButton from "@/src/components/LikeButton";
 import TrackView from "@/src/components/TrackView";
 // import ShareButtons from "@/src/components/ShareButtons"; // KALDIRILDI
 import ShareMenu from "@/src/components/ShareMenu"; // YENİ: tek buton + renkli ikon menü
+import RelatedCarousel from "@/src/components/product/RelatedCarousel"; // YENİ: benzer ürünler carousel
 
 // SSR i18n (cookie -> messages)
 function t(ns: any, key: string, fallback?: string) {
@@ -138,18 +139,6 @@ export default async function ProductPage({
     likes = Number(stat?.likes || 0);
   } catch {
     likes = 0;
-  }
-
-  // Benzer ürünler (aynı kategori)
-  let similar: any[] = [];
-  if (product.category_id) {
-    const {data: sim} = await supabase
-      .from("products")
-      .select("*")
-      .eq("category_id", product.category_id)
-      .neq("id", product.id)
-      .limit(12);
-    similar = Array.isArray(sim) ? sim : [];
   }
 
   // JSON-LD
@@ -281,19 +270,10 @@ export default async function ProductPage({
         </aside>
       </div>
 
-      {/* Benzer ürünler */}
-      {similar.length > 0 && (
-        <section className="mt-12">
-          <h2 className="text-lg font-semibold mb-4">
-            {t(messages.common, "benzer_ürünler", "Similar products")}
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {similar.map((p: any) => (
-              <ProductCard key={p.id} p={p}/>
-            ))}
-          </div>
-        </section>
-      )}
+      {/* Benzer Ürünler – oklar + otomatik kaydırma + ortalı başlık (i18n içeriden) */}
+      <div className="mt-12 container-tight">
+        <RelatedCarousel seedSlug={product.slug ?? slug}/>
+      </div>
     </div>
   );
 }
