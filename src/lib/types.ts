@@ -27,3 +27,12 @@ export type Product = {
 };
 
 export type Setting = { key: string; value: string | null };
+
+
+export type ProductImage = {
+  id: string;
+  product_id: string;
+  url: string;
+  image_alt?: string | null;
+  position?: number | null;
+};
