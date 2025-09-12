@@ -1,4 +1,3 @@
-
 "use client";
 
 import Image from "next/image";
@@ -18,7 +17,7 @@ const EASE = "ease-out";
 function formatEUR(n?: number | null) {
   if (typeof n !== "number") return "—";
   try {
-    return new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(n);
+    return new Intl.NumberFormat("de-DE", {style: "currency", currency: "EUR"}).format(n);
   } catch {
     return `${n.toFixed(2)} €`;
   }
@@ -36,11 +35,11 @@ export default function FeaturedCarousel() {
   const [prefersReduced, setPrefersReduced] = useState(false);
 
   const viewportRef = useRef<HTMLDivElement | null>(null);
-  const trackRef    = useRef<HTMLDivElement | null>(null);
-  const firstSlide  = useRef<HTMLDivElement | null>(null);
-  const timerRef    = useRef<number | null>(null);
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  const firstSlide = useRef<HTMLDivElement | null>(null);
+  const timerRef = useRef<number | null>(null);
   const hoveringRef = useRef(false);
-  const touchingRef = useRef<null | {startX:number, lastX:number}>(null);
+  const touchingRef = useRef<null | { startX: number, lastX: number }>(null);
 
   // progress bar (styled-jsx yok)
   const [progKey, setProgKey] = useState(0);
@@ -50,17 +49,19 @@ export default function FeaturedCarousel() {
     let mounted = true;
     (async () => {
       setLoading(true);
-      const { data } = await supabase
+      const {data} = await supabase
         .from("products")
         .select("id,name,slug,price,image_url,image_alt")
         .eq("is_featured", true)
-        .order("updated_at", { ascending: false })
+        .order("updated_at", {ascending: false})
         .limit(24);
       if (!mounted) return;
       setItems((data ?? []) as FP[]);
       setLoading(false);
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -94,7 +95,12 @@ export default function FeaturedCarousel() {
   }, [index, slideW, prefersReduced]);
 
   // autoplay
-  const clearTimer = () => { if (timerRef.current) { window.clearInterval(timerRef.current); timerRef.current = null; } };
+  const clearTimer = () => {
+    if (timerRef.current) {
+      window.clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  };
   const startTimer = () => {
     if (prefersReduced) return;
     clearTimer();
@@ -127,11 +133,15 @@ export default function FeaturedCarousel() {
   const next = () => setIndex(i => (i + 1) % Math.max(items.length, 1));
   const prev = () => setIndex(i => (i - 1 + Math.max(items.length, 1)) % Math.max(items.length, 1));
 
-  const onMouseEnter = () => { hoveringRef.current = true; };
-  const onMouseLeave = () => { hoveringRef.current = false; };
+  const onMouseEnter = () => {
+    hoveringRef.current = true;
+  };
+  const onMouseLeave = () => {
+    hoveringRef.current = false;
+  };
 
   const onTouchStart: React.TouchEventHandler<HTMLDivElement> = (e) => {
-    touchingRef.current = { startX: e.touches[0].clientX, lastX: e.touches[0].clientX };
+    touchingRef.current = {startX: e.touches[0].clientX, lastX: e.touches[0].clientX};
     clearTimer();
   };
   const onTouchMove: React.TouchEventHandler<HTMLDivElement> = (e) => {
@@ -142,7 +152,9 @@ export default function FeaturedCarousel() {
     const info = touchingRef.current;
     touchingRef.current = null;
     const dx = info ? info.lastX - info.startX : 0;
-    if (Math.abs(dx) > 40) { dx < 0 ? next() : prev(); }
+    if (Math.abs(dx) > 40) {
+      dx < 0 ? next() : prev();
+    }
     startTimer();
     setProgKey(k => k + 1);
   };
@@ -157,10 +169,10 @@ export default function FeaturedCarousel() {
           <h2 className="text-xl md:text-2xl font-semibold text-center">
             {T("featured_title", "Öne Çıkan Ürünler")}
           </h2>
-          <span className="h-2 w-28 rounded bg-neutral-200 animate-pulse" />
+          <span className="h-2 w-28 rounded bg-neutral-200 animate-pulse"/>
         </div>
         <div className="flex gap-4">
-          {Array.from({length: 4}).map((_,i)=>(
+          {Array.from({length: 4}).map((_, i) => (
             <div key={i} className="w-56 sm:w-64 md:w-72 flex-shrink-0">
               <div className="aspect-[4/5] rounded-2xl bg-neutral-100 animate-pulse"/>
               <div className="mt-3 space-y-2">
@@ -185,7 +197,7 @@ export default function FeaturedCarousel() {
         </h2>
         {!prefersReduced && (
           <div className="relative h-1 w-28 overflow-hidden rounded bg-neutral-200">
-            <div ref={progRef} key={progKey} className="h-full bg-neutral-800/80 w-0" />
+            <div ref={progRef} key={progKey} className="h-full bg-neutral-800/80 w-0"/>
           </div>
         )}
       </div>
@@ -203,7 +215,7 @@ export default function FeaturedCarousel() {
         <div
           ref={trackRef}
           className="flex gap-4 will-change-transform"
-          style={{ transform: `translateX(-${index * slideW}px)` }}
+          style={{transform: `translateX(-${index * slideW}px)`}}
           aria-live="polite"
         >
           {safeItems.map((p, i) => (
@@ -212,8 +224,9 @@ export default function FeaturedCarousel() {
               ref={i === 0 ? firstSlide : undefined}
               className="group relative flex-shrink-0 w-56 sm:w-64 md:w-72"
             >
-              <div className="absolute left-2 top-2 z-10 rounded-full px-2 py-1 text-[10px] font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-600 shadow">
-                Öne Çıkan
+              <div
+                className="absolute left-2 top-2 z-10 rounded-full px-2 py-1 text-[10px] font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-600 shadow">
+                {T("featured_badge", "Öne Çıkan")}
               </div>
 
               <Link
@@ -252,21 +265,31 @@ export default function FeaturedCarousel() {
           <button
             type="button"
             aria-label="Önceki"
-            onClick={() => { prev(); clearTimer(); startTimer(); setProgKey(k => k + 1); }}
+            onClick={() => {
+              prev();
+              clearTimer();
+              startTimer();
+              setProgKey(k => k + 1);
+            }}
             className="pointer-events-auto ml-1 md:ml-2 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/95 border border-neutral-200 shadow hover:bg-white focus:outline-none focus:ring-2 focus:ring-neutral-300"
           >
             <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M15 6l-6 6 6 6" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M15 6l-6 6 6 6" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
           <button
             type="button"
             aria-label="Sonraki"
-            onClick={() => { next(); clearTimer(); startTimer(); setProgKey(k => k + 1); }}
+            onClick={() => {
+              next();
+              clearTimer();
+              startTimer();
+              setProgKey(k => k + 1);
+            }}
             className="pointer-events-auto mr-1 md:mr-2 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/95 border border-neutral-200 shadow hover:bg-white focus:outline-none focus:ring-2 focus:ring-neutral-300"
           >
             <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M9 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M9 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
         </div>
@@ -274,12 +297,17 @@ export default function FeaturedCarousel() {
         {/* dots */}
         {dots > 1 && (
           <div className="mt-3 flex items-center justify-center gap-2">
-            {Array.from({length: dots}).map((_,i)=>(
+            {Array.from({length: dots}).map((_, i) => (
               <button
                 key={i}
-                aria-label={`Slayt ${i+1}`}
-                onClick={() => { setIndex(i); clearTimer(); startTimer(); setProgKey(k => k + 1); }}
-                className={`h-1.5 rounded-full transition-all ${i===index ? "w-6 bg-neutral-900" : "w-2 bg-neutral-300 hover:bg-neutral-400"}`}
+                aria-label={`Slayt ${i + 1}`}
+                onClick={() => {
+                  setIndex(i);
+                  clearTimer();
+                  startTimer();
+                  setProgKey(k => k + 1);
+                }}
+                className={`h-1.5 rounded-full transition-all ${i === index ? "w-6 bg-neutral-900" : "w-2 bg-neutral-300 hover:bg-neutral-400"}`}
               />
             ))}
           </div>

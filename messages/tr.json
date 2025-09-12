@@ -1,6 +1,7 @@
 {
   "home": {
-    "welcome": "Nut Things'e Hoşgeldiniz"
+    "welcome": "Nut Things'e Hoşgeldiniz",
+    "featured_badge": "Öne Çıkan"
   },
   "product": {
     "related_title": "Benzer Ürünler"

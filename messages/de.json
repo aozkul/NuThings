@@ -1,6 +1,7 @@
 {
   "home": {
-    "welcome": "Willkommen bei Nut Things"
+    "welcome": "Willkommen bei Nut Things",
+    "featured_badge": "Hervorgehoben"
   },
   "product": {
     "related_title": "Ähnliche Produkte"
