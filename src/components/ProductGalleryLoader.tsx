@@ -10,7 +10,7 @@ export default function ProductGalleryLoader({
                                                productId,
                                                mainUrl,
                                                mainAlt,
-                                               debug = true, // küçük teşhis satırı
+                                               debug = true,
                                              }: {
   productId: string;
   mainUrl?: string | null;
@@ -27,7 +27,7 @@ export default function ProductGalleryLoader({
       try {
         setError(null);
 
-        // SADE: sadece mevcut kolonları oku (url, image_alt, position)
+        // Şeman: url + image_alt + position (image_url kolonu yok)
         const {data, error} = await supabase
           .from("product_images")
           .select("id,url,image_alt,position")
@@ -39,14 +39,16 @@ export default function ProductGalleryLoader({
           return;
         }
 
-        const arr =
-          (data || []).map((i: any) => ({
+        const rows = (data ?? []) as any[];
+        const arr: Img[] = rows
+          .map((i) => ({
             id: i.id,
-            image_url: i.url as string,     // << url -> image_url map
-            alt: i.image_alt as string | null,
-          })) || [];
+            image_url: String(i.url),
+            alt: (i.image_alt ?? undefined) as string | undefined, // <-- null -> undefined
+          }))
+          .filter((x) => !!x.image_url);
 
-        if (!done) setImages(arr.filter((x) => !!x.image_url));
+        if (!done) setImages(arr);
       } catch (e: any) {
         if (!done) setError(e?.message || String(e));
       }
@@ -74,4 +76,3 @@ export default function ProductGalleryLoader({
     </div>
   );
 }
-  
