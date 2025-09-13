@@ -2,5 +2,14 @@
   "home": {
     "featured_title": "Öne Çıkan Ürünler",
     "most_liked_title": "En Çok Beğenilen"
+  },
+  "footer": {
+    "newsletter_title": "Bültenimize Abone Olun!",
+    "newsletter_desc": "Kampanyalarımızdan ve indirimlerimizden güncel olarak haberdar olun.",
+    "email_placeholder": "E-posta adresinizi yazın...",
+    "subscribe_aria": "Abone ol",
+    "consent_terms": "Üyelik koşullarını",
+    "consent_privacy": "kişisel verilerimin",
+    "consent_rest": "korunmasını kabul ediyorum."
   }
 }

@@ -19,6 +19,18 @@
     "about": "Hakkımızda",
     "contact": "İletişim"
   },
+  "footer": {
+    "newsletter_title": "Bültenimize Abone Olun!",
+    "newsletter_desc": "Kampanyalarımızdan ve indirimlerimizden güncel olarak haberdar olun.",
+    "email_placeholder": "E-posta adresinizi yazın...",
+    "subscribe_aria": "Abone ol",
+    "consent_terms": "Üyelik koşullarını",
+    "consent_privacy": "kişisel verilerimin",
+    "consent_rest": "korunmasını kabul ediyorum.",
+    "success": "Teşekkürler! E-postanız kaydedildi.",
+    "error": "Kayıt sırasında hata oluştu.",
+    "network": "Bağlantı hatası."
+  },
   "common": {
     "important_info": "Önemli Bilgi",
     "share": "Paylaş",

@@ -2,5 +2,14 @@
   "home": {
     "featured_title": "Featured Products",
     "most_liked_title": "Most Liked"
+  },
+  "footer": {
+    "newsletter_title": "Subscribe to our newsletter",
+    "newsletter_desc": "Be the first to hear about promotions and discounts.",
+    "email_placeholder": "Enter your e-mail address...",
+    "subscribe_aria": "Subscribe",
+    "consent_terms": "Terms of membership",
+    "consent_privacy": "my personal data",
+    "consent_rest": "I accept its protection."
   }
 }

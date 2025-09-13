@@ -14,6 +14,18 @@
     "category": "Kategorie",
     "sku": "Artikelnummer"
   },
+  "footer": {
+    "newsletter_title": "Abonnieren Sie unseren Newsletter",
+    "newsletter_desc": "Bleiben Sie über unsere neuesten Aktionen und Rabatte informiert.",
+    "email_placeholder": "E-Mail-Adresse eingeben...",
+    "subscribe_aria": "Abonnieren",
+    "consent_terms": "Nutzungsbedingungen",
+    "consent_privacy": "meiner personenbezogenen Daten",
+    "consent_rest": "deren Schutz akzeptiere ich.",
+    "success": "Danke! Ihre E-Mail wurde gespeichert.",
+    "error": "Beim Speichern ist ein Fehler aufgetreten.",
+    "network": "Verbindungsfehler."
+  },
   "navbar": {
     "products": "Produkte",
     "about": "Über uns",

@@ -19,6 +19,18 @@
     "about": "About us",
     "contact": "Contact"
   },
+  "footer": {
+    "newsletter_title": "Subscribe to our Newsletter",
+    "newsletter_desc": "Stay up to date with our latest campaigns and discounts.",
+    "email_placeholder": "Enter your email address...",
+    "subscribe_aria": "Subscribe",
+    "consent_terms": "Terms of membership",
+    "consent_privacy": "my personal data",
+    "consent_rest": "I agree to its protection.",
+    "success": "Thank you! Your email has been saved.",
+    "error": "An error occurred during registration.",
+    "network": "Connection error."
+  },
   "common": {
     "important_info": "Important Information",
     "share": "Share",
