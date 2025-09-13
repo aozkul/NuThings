@@ -97,7 +97,7 @@ export default function ParallaxSection({
             )}
         >
             {/* Arka plan görseli: bgUrl varsa göster */}
-            {bgUrl && (
+            {bgMode === "image" && bgUrl ? (
                 <div className="absolute inset-0 z-0">
                     <img
                         src={bgUrl}
@@ -106,7 +106,7 @@ export default function ParallaxSection({
                         loading="eager"
                     />
                 </div>
-            )}
+            ) : null}
 
             {/* İçerik */}
             <div className="relative z-10 h-full container-tight px-4 mx-auto">
