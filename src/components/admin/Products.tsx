@@ -4,137 +4,216 @@ import React, {useEffect, useMemo, useRef, useState} from "react";
 import {supabase} from "@/src/lib/supabaseClient";
 import ProductImages from "@/src/components/admin/ProductImages";
 
-/* --- Shared font options (local + Google) for Important Info editor --- */
-const LOCAL_FONT_OPTIONS = [
-  "inherit",
-  "Inter, system-ui, sans-serif",
-  "Arial, Helvetica, sans-serif",
-  "Georgia, serif",
-  "\"Times New Roman\", Times, serif",
-  "Roboto, system-ui, sans-serif",
-  "\"Playfair Display\", serif",
-  "Merriweather, serif",
-];
-
-const GOOGLE_FONT_FAMILIES: Record<string, string> = {
-  "Inter": "Inter, system-ui, sans-serif",
-  "Roboto": "Roboto, system-ui, sans-serif",
-  "Playfair Display": "\"Playfair Display\", serif",
-  "Merriweather": "Merriweather, serif",
-  "Lora": "Lora, serif",
-  "Poppins": "Poppins, sans-serif",
-  "Montserrat": "Montserrat, sans-serif",
-  "Open Sans": "\"Open Sans\", sans-serif",
-  "Raleway": "Raleway, sans-serif",
-  "Lato": "Lato, sans-serif",
-  "Source Sans 3": "\"Source Sans 3\", sans-serif",
-  "Noto Serif": "\"Noto Serif\", serif",
-  "Noto Sans": "\"Noto Sans\", sans-serif",
-  "DM Sans": "\"DM Sans\", sans-serif",
-  "Josefin Sans": "\"Josefin Sans\", sans-serif",
-  "Oswald": "Oswald, sans-serif",
-  "Nunito": "Nunito, sans-serif",
-  "Libre Baskerville": "\"Libre Baskerville\", serif",
-  "Bebas Neue": "\"Bebas Neue\", cursive",
-  "Quicksand": "Quicksand, sans-serif",
-  // Handwriting (cursive)
-  "Dancing Script": "\"Dancing Script\", cursive",
-  "Great Vibes": "\"Great Vibes\", cursive",
-  "Pacifico": "Pacifico, cursive",
-  "Satisfy": "Satisfy, cursive",
-  "Caveat": "Caveat, cursive",
-  "Shadows Into Light": "\"Shadows Into Light\", cursive",
-  "Amatic SC": "\"Amatic SC\", cursive",
-  "Handlee": "Handlee, cursive",
-  "Sacramento": "Sacramento, cursive",
-  "Courgette": "Courgette, cursive",
-  "Gloria Hallelujah": "\"Gloria Hallelujah\", cursive",
-  "Nothing You Could Do": "\"Nothing You Could Do\", cursive"
-};
-const FONT_OPTIONS = Array.from(new Set([
-  ...LOCAL_FONT_OPTIONS,
-  ...Object.values(GOOGLE_FONT_FAMILIES),
-])) as string[];
-
-/* --- Types & constants --- */
+/** ------ Tipler ------ */
 type Cat = { id: string; name: string };
 type ProdRow = {
   id: string;
-  name: string;
+  name: string | null;
   category_id: string | null;
   price: number | null;
   image_url: string | null;
-  image_alt: string | null; // SEO ALT
+  image_alt: string | null;
   description: string | null;
-  important_html: string | null; // Önemli Bilgi (HTML)
+  important_html: string | null;
   is_featured: boolean | null;
   seo_title?: string | null;
   seo_desc?: string | null;
+  sort_order?: number | null;
 };
 
+/** ------ Storage ------ */
 const STORAGE_BUCKET = "product-images";
 const PRODUCT_PREFIX = "products/";
 
-/* --- Component --- */
+/** ------ Toolbar sabitleri (görseldeki gibi sade) ------ */
+const SIZE_OPTIONS = [
+  {v: "14px", l: "Küçük"},
+  {v: "16px", l: "Normal"},
+  {v: "18px", l: "Büyük"},
+  {v: "20px", l: "Başlık"},
+];
+const FAMILY_OPTIONS = [
+  {v: "inherit", l: "inherit"},
+  {v: "Inter, system-ui, sans-serif", l: "Inter"},
+  {v: "Arial, Helvetica, sans-serif", l: "Arial"},
+  {v: "Georgia, serif", l: "Georgia"},
+  {v: "Roboto, system-ui, sans-serif", l: "Roboto"},
+];
+
+/** ------ Component ------ */
 export default function ProductsAdmin() {
   const [rows, setRows] = useState<ProdRow[]>([]);
   const [cats, setCats] = useState<Cat[]>([]);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
 
-  // form
+  // Kategori filtresi
+  const [filterCatId, setFilterCatId] = useState<string>("");
+
+  // Drawer/Form state
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<ProdRow | null>(null);
 
+  // Form alanları
   const [fName, setFName] = useState("");
   const [fCategoryId, setFCategoryId] = useState<string>("");
   const [fPrice, setFPrice] = useState<number | "">("");
   const [fImage, setFImage] = useState("");
-  const [fAlt, setFAlt] = useState(""); // Görsel Alt (SEO)
+  const [fAlt, setFAlt] = useState("");
   const [fDesc, setFDesc] = useState("");
   const [fSeoTitle, setFSeoTitle] = useState("");
   const [fSeoDesc, setFSeoDesc] = useState("");
   const [fFeatured, setFFeatured] = useState(false);
+  const [fSort, setFSort] = useState<number | "">(0); // sort_order
 
   const [uploading, setUploading] = useState(false);
 
-  // Önemli Bilgi editörü: tamamen uncontrolled
+  // Önemli Bilgi (rich text)
   const impRef = useRef<HTMLDivElement>(null);
   const importantHTMLRef = useRef<string>("");
 
-  // --- Selection helpers ---
+  // Toolbar selection helpers
   const savedRangeRef = useRef<Range | null>(null);
   const saveSelection = () => {
     const sel = window.getSelection();
-    if (sel && sel.rangeCount > 0) {
-      savedRangeRef.current = sel.getRangeAt(0);
-    }
+    if (sel && sel.rangeCount > 0) savedRangeRef.current = sel.getRangeAt(0);
   };
   const restoreSelection = () => {
     const sel = window.getSelection();
-    if (savedRangeRef.current && sel) {
+    if (sel && savedRangeRef.current) {
       sel.removeAllRanges();
       sel.addRange(savedRangeRef.current);
     }
   };
-  const runCmd = (fn: () => void) => {
-    impRef.current?.focus();
+  const exec = (cmd: string, val?: string) => {
     restoreSelection();
-    fn();
+    document.execCommand(cmd, false, val);
+    onImpChange();
+    saveSelection();
+  };
+  const applyInlineStyle = (style: "fontSize" | "color" | "fontFamily", value: string) => {
+    restoreSelection();
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+    const range = sel.getRangeAt(0);
+    const span = document.createElement("span");
+    (span.style as any)[style] = value;
+    span.appendChild(range.extractContents());
+    range.insertNode(span);
+    sel.removeAllRanges();
+    const nr = document.createRange();
+    nr.selectNodeContents(span);
+    nr.collapse(false);
+    sel.addRange(nr);
+    onImpChange();
     saveSelection();
   };
 
-  const sanitizeFileName = (name: string) =>
-    name.toLowerCase().replace(/[^a-z0-9.\-_]+/g, "-");
+  // Kategori adı haritası
+  const catMap = useMemo(() => {
+    const m = new Map<string, string>();
+    cats.forEach((c) => m.set(c.id, c.name));
+    return m;
+  }, [cats]);
 
+  // Filtrelenmiş satırlar
+  const filteredRows = useMemo(() => {
+    if (!filterCatId) return rows;
+    return rows.filter((r) => r.category_id === filterCatId);
+  }, [rows, filterCatId]);
+
+  // Veri yükleme
+  const load = async () => {
+    setLoading(true);
+    setStatus(null);
+    try {
+      const [catRes, prodRes] = await Promise.all([
+        supabase.from("categories").select("id, name").order("name", {ascending: true}),
+        supabase
+          .from("products")
+          .select(
+            "id, name, category_id, price, image_url, image_alt, description, important_html, is_featured, seo_title, seo_desc, sort_order"
+          )
+          .order("sort_order", {ascending: true})
+          .order("name", {ascending: true}),
+      ]);
+      if (catRes.error) throw catRes.error;
+      if (prodRes.error) throw prodRes.error;
+      setCats((catRes.data as any as Cat[]) || []);
+      setRows((prodRes.data as any as ProdRow[]) || []);
+    } catch (e: any) {
+      setStatus(e?.message || String(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // --- Sıralama yardımcıları (kategori içinde hareket) ---
+  const sortedByOrder = (categoryId?: string) =>
+    (categoryId ? rows.filter((r) => r.category_id === categoryId) : rows)
+      .slice()
+      .sort(
+        (a: any, b: any) =>
+          (a.sort_order ?? 0) - (b.sort_order ?? 0) ||
+          (a.name || "").localeCompare(b.name || "")
+      );
+
+  const moveUp = async (id: string) => {
+    const row = rows.find((r) => r.id === id);
+    const sorted = sortedByOrder(row?.category_id || undefined);
+    const i = sorted.findIndex((r) => r.id === id);
+    if (i <= 0) return;
+    const a: any = sorted[i], b: any = sorted[i - 1];
+    await swapOrders(a, b);
+  };
+
+  const moveDown = async (id: string) => {
+    const row = rows.find((r) => r.id === id);
+    const sorted = sortedByOrder(row?.category_id || undefined);
+    const i = sorted.findIndex((r) => r.id === id);
+    if (i === -1 || i >= sorted.length - 1) return;
+    const a: any = sorted[i], b: any = sorted[i + 1];
+    await swapOrders(a, b);
+  };
+
+  const swapOrders = async (a: any, b: any) => {
+    try {
+      setStatus(null);
+      const aOrder = a.sort_order ?? 0;
+      const bOrder = b.sort_order ?? 0;
+      // Çakışma engelleme: geçici değer
+      let {error: e1} = await supabase.from("products").update({sort_order: 999999}).eq("id", a.id);
+      if (e1) throw e1;
+      let {error: e2} = await supabase.from("products").update({sort_order: aOrder}).eq("id", b.id);
+      if (e2) throw e2;
+      let {error: e3} = await supabase.from("products").update({sort_order: bOrder}).eq("id", a.id);
+      if (e3) throw e3;
+      await load();
+    } catch (err: any) {
+      setStatus(err.message || "Sıralama güncellenemedi.");
+    }
+  };
+
+  const updateOrderInline = async (id: string, value: number) => {
+    try {
+      const {error} = await supabase.from("products").update({sort_order: value}).eq("id", id);
+      if (error) throw error;
+      await load();
+    } catch (err: any) {
+      setStatus(err.message || "Sıra değeri kaydedilemedi.");
+    }
+  };
+
+  // Storage upload
   const uploadToStorage = async (file: File, prefix: string) => {
-    const safe = sanitizeFileName(file.name);
-    const path = `${prefix}${Date.now()}-${safe}`;
-    const {error} = await supabase.storage
-      .from(STORAGE_BUCKET)
-      .upload(path, file, {cacheControl: "3600", upsert: false});
-    if (error) throw error;
-    const {data: pub} = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+    const ext = file.name.split(".").pop();
+    const path = `${prefix}${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+    const {error: upErr} = await supabase.storage.from(STORAGE_BUCKET).upload(path, file, {
+      cacheControl: "3600",
+      upsert: false,
+    });
+    if (upErr) throw upErr;
+    const pub = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path).data;
     return pub?.publicUrl || "";
   };
 
@@ -154,6 +233,7 @@ export default function ProductsAdmin() {
     }
   };
 
+  // Yeni/Düzenle
   const onNew = () => {
     setEditing(null);
     setFName("");
@@ -164,10 +244,13 @@ export default function ProductsAdmin() {
     setFDesc("");
     setFSeoTitle("");
     setFSeoDesc("");
+    setFSort(0);
     importantHTMLRef.current = "";
     setFFeatured(false);
     setOpen(true);
-    requestAnimationFrame(() => { if (impRef.current) impRef.current.innerHTML = ""; });
+    requestAnimationFrame(() => {
+      if (impRef.current) impRef.current.innerHTML = "";
+    });
   };
 
   const onEdit = (p: ProdRow) => {
@@ -180,83 +263,31 @@ export default function ProductsAdmin() {
     setFDesc(p.description || "");
     setFSeoTitle((p.seo_title as string) || "");
     setFSeoDesc((p.seo_desc as string) || "");
+    setFSort(p.sort_order ?? 0);
     importantHTMLRef.current = p.important_html || "";
     setFFeatured(!!p.is_featured);
     setOpen(true);
-    requestAnimationFrame(() => { if (impRef.current) impRef.current.innerHTML = importantHTMLRef.current || ""; });
-  };
-
-  const load = async () => {
-    setLoading(true);
-    setStatus(null);
-    try {
-      const [catRes, prodRes] = await Promise.all([
-        supabase.from("categories").select("id, name").order("name", {ascending: true}),
-        supabase.from("products").select("id, name, category_id, price, image_url, image_alt, description, important_html, is_featured, seo_title, seo_desc").order("name", {ascending: true}),
-      ]);
-      if (catRes.error) throw catRes.error;
-      if (prodRes.error) throw prodRes.error;
-      setCats((catRes.data as any as Cat[]) || []);
-      setRows((prodRes.data as any as ProdRow[]) || []);
-    } catch (e: any) {
-      setStatus(e?.message || String(e));
-    } finally {
-      setLoading(false);
-    }
-  };
-  useEffect(() => { load(); }, []);
-
-  useEffect(() => {
-    try {
-      const id = "admin-google-fonts-products";
-      const weights = "wght@300;400;500;600;700;800;900";
-      const famParams = Object.keys(GOOGLE_FONT_FAMILIES).map((name) => `family=${encodeURIComponent(name)}:${weights}`).join("&");
-      const href = `https://fonts.googleapis.com/css2?${famParams}&display=swap`;
-      let link = document.getElementById(id) as HTMLLinkElement | null;
-      if (!link) { link = document.createElement("link"); link.id = id; link.rel = "stylesheet"; document.head.appendChild(link); }
-      if (link.href !== href) link.href = href;
-    } catch {}
-  }, []);
-
-  useEffect(() => {
-    if (open && impRef.current) {
-      const node = impRef.current;
-      const range = document.createRange();
-      range.selectNodeContents(node);
-      range.collapse(false);
-      const sel = window.getSelection();
-      if (sel) { sel.removeAllRanges(); sel.addRange(range); }
-      const handler = () => { const s = window.getSelection(); if (s && s.rangeCount) savedRangeRef.current = s.getRangeAt(0); };
-      node.addEventListener("mouseup", handler);
-      node.addEventListener("keyup", handler);
-      return () => {
-        node.removeEventListener("mouseup", handler);
-        node.removeEventListener("keyup", handler);
-      };
-    }
-  }, [open]);
-
-  const onEditorInput = (e: React.FormEvent<HTMLDivElement>) => {
-    importantHTMLRef.current = (e.currentTarget as HTMLDivElement).innerHTML;
+    requestAnimationFrame(() => {
+      if (impRef.current) impRef.current.innerHTML = importantHTMLRef.current || "";
+    });
   };
 
   const onSave = async () => {
-    setStatus(null);
-    const payload = {
-      name: fName.trim() || null,
-      category_id: fCategoryId || null,
-      price: typeof fPrice === "number" ? fPrice : (fPrice === "" ? null : Number(fPrice)),
-      image_url: fImage || null,
-      image_alt: fAlt || null,
-      description: fDesc || null,
-      seo_title: fSeoTitle || null,
-      seo_desc: fSeoDesc || null,
-      is_featured: !!fFeatured,
-      important_html: importantHTMLRef.current || null,
-    };
-    if (!payload.name) { setStatus("Ürün adı zorunlu."); return; }
-    if (uploading) { setStatus("Görsel yüklenmesi bitene kadar bekleyin."); return; }
     try {
+      setStatus(null);
+      const payload = {
+        name: fName.trim() || null,
+        category_id: fCategoryId || null,
+        price: typeof fPrice === "number" ? fPrice : (fPrice === "" ? null : Number(fPrice)),
+        image_url: fImage || null,
+        image_alt: fAlt || null,
+        description: fDesc || null,
+        seo_title: fSeoTitle || null,
+        seo_desc: fSeoDesc || null,
+        is_featured: !!fFeatured,
+        important_html: importantHTMLRef.current || null,
+        sort_order: fSort === "" ? null : Number(fSort),
+      };
       if (editing) {
         const {error} = await supabase.from("products").update(payload).eq("id", editing.id);
         if (error) throw error;
@@ -267,77 +298,155 @@ export default function ProductsAdmin() {
       setOpen(false);
       await load();
     } catch (e: any) {
-      setStatus(e?.message || String(e));
+      setStatus(e?.message || "Kaydedilemedi.");
     }
   };
 
   const onDelete = async (id: string) => {
-    if (!confirm("Bu ürünü silmek istiyor musunuz?")) return;
+    if (!confirm("Silmek istediğine emin misin?")) return;
     const {error} = await supabase.from("products").delete().eq("id", id);
-    if (error) { setStatus(error.message); return; }
+    if (error) {
+      setStatus(error.message);
+      return;
+    }
     await load();
   };
 
-  const catMap = useMemo(() => {
-    const m = new Map<string, string>();
-    cats.forEach((c) => m.set(c.id, c.name));
-    return m;
-  }, [cats]);
+  const onImpChange = () => {
+    importantHTMLRef.current = impRef.current?.innerHTML || "";
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Ürünler</h2>
-        <button onClick={onNew} className="rounded-lg bg-black text-white px-4 py-2">Yeni Ürün</button>
-      </div>
+    <div className="space-y-4">
+      {/* Kart başlık + kategori filtresi + buton */}
+      <div className="rounded-xl border overflow-hidden">
+        <div className="px-4 py-3 flex items-center justify-between gap-4 bg-neutral-50">
+          <h2 className="text-xl font-semibold">Ürünler</h2>
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-neutral-600">Kategori:</label>
+            <select
+              value={filterCatId}
+              onChange={(e) => setFilterCatId(e.target.value)}
+              className="border rounded px-2 py-1 text-sm"
+            >
+              <option value="">Tümü</option>
+              {cats.map(c => (<option key={c.id} value={c.id}>{c.name}</option>))}
+            </select>
+          </div>
+          <button onClick={onNew} className="rounded-lg bg-black text-white px-4 py-2">
+            Yeni Ürün
+          </button>
+        </div>
 
-      {status && <div className="text-sm text-red-600">{status}</div>}
-
-      <div className="rounded-xl border">
         <div className="p-4">
+          {status && <div className="mb-3 text-sm text-red-600">{status}</div>}
+
           {loading ? (
             <div className="text-sm text-neutral-500">Yükleniyor…</div>
-          ) : rows.length ? (
+          ) : filteredRows.length ? (
             <div className="overflow-x-auto">
-              <table className="min-w-full text-sm">
+              <table className="min-w-full text-sm table-fixed">
                 <thead>
-                  <tr className="text-left text-neutral-600">
-                    <th className="py-2 pr-4">Ürün</th>
-                    <th className="py-2 pr-4">Kategori</th>
-                    <th className="py-2 pr-4">Fiyat</th>
-                    <th className="py-2 pr-4">Görsel</th>
-                    <th className="py-2 pr-4">Görsel Alt (SEO)</th>
-                    <th className="py-2 pr-4">Öne Çıkan</th>
-                    <th className="py-2 pr-4 w-28">İşlem</th>
-                  </tr>
+                <tr className="text-left text-neutral-600">
+                  <th className="py-2 pr-4">Ürün</th>
+                  <th className="py-2 pr-4 w-28 whitespace-nowrap">Kategori</th>
+                  <th className="py-2 pr-4 w-20 whitespace-nowrap">Sıra</th>
+                  <th className="py-2 pr-4 w-28 whitespace-nowrap">Sıralama</th>
+                  <th className="py-2 pr-4 w-20 whitespace-nowrap">Fiyat</th>
+                  <th className="py-2 pr-4 w-20 whitespace-nowrap">Görsel</th>
+                  {/* Görsel Alt (SEO) sütunu kaldırıldı */}
+                  <th className="py-2 pr-4 w-32 whitespace-nowrap">İşlem</th>
+                </tr>
                 </thead>
                 <tbody>
-                  {rows.map((r) => (
-                    <tr key={r.id} className="border-t">
-                      <td className="py-2 pr-4">
-                        <div className="font-medium">{r.name}</div>
-                        <div className="text-xs text-neutral-600 truncate max-w-[40ch]">{r.description ?? ""}</div>
-                      </td>
-                      <td className="py-2 pr-4">{r.category_id ? catMap.get(r.category_id) || "-" : "-"}</td>
-                      <td className="py-2 pr-4">{typeof r.price === "number" ? `${r.price.toFixed(2)} €` : "-"}</td>
-                      <td className="py-2 pr-4">
-                        {r.image_url ? <img src={r.image_url} alt="" className="h-10 w-14 object-cover rounded"/> : "-"}
-                      </td>
-                      <td className="py-2 pr-4">{r.image_alt || "-"}</td>
-                      <td className="py-2 pr-4">{r.is_featured ? "Evet" : "Hayır"}</td>
-                      <td className="py-2 pr-4">
-                        <div className="flex items-center gap-2">
-                          <button className="px-2 py-1 rounded border" onClick={() => onEdit(r)}>Düzenle</button>
-                          <button className="px-2 py-1 rounded border" onClick={() => onDelete(r.id)}>Sil</button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                {filteredRows.map((r) => (
+                  <tr key={r.id} className="border-t">
+                    <td className="py-2 pr-4">
+                      <div className="font-medium">{r.name}</div>
+                      <div className="text-xs text-neutral-600 line-clamp-1 max-w-[40ch]">
+                        {r.description ?? ""}
+                      </div>
+                    </td>
+
+                    <td className="py-2 pr-4">
+                        <span className="whitespace-nowrap">
+                          {r.category_id ? catMap.get(r.category_id) || "-" : "-"}
+                        </span>
+                    </td>
+
+                    {/* Sıra (inline) */}
+                    <td className="py-2 pr-4">
+                      <input
+                        type="number"
+                        className="w-14 border rounded px-2 py-1 text-sm"
+                        value={(r as any).sort_order ?? 0}
+                        onChange={(e) => updateOrderInline(r.id, Number(e.target.value))}
+                      />
+                    </td>
+
+                    {/* Sıralama (↑ ↓) */}
+                    <td className="py-2 pr-4">
+                      <div className="flex items-center gap-1">
+                        <button
+                          title="Yukarı"
+                          className="h-8 w-8 border rounded flex items-center justify-center"
+                          onClick={() => moveUp(r.id)}
+                        >
+                          ↑
+                        </button>
+                        <button
+                          title="Aşağı"
+                          className="h-8 w-8 border rounded flex items-center justify-center"
+                          onClick={() => moveDown(r.id)}
+                        >
+                          ↓
+                        </button>
+                      </div>
+                    </td>
+
+                    {/* Fiyat */}
+                    <td className="py-2 pr-4">
+                      {typeof r.price === "number" ? `${r.price.toFixed(2)} €` : "-"}
+                    </td>
+
+                    {/* Görsel */}
+                    <td className="py-2 pr-4">
+                      {r.image_url ? (
+                        <img
+                          src={r.image_url}
+                          alt=""
+                          className="h-10 w-14 object-cover rounded mx-auto"
+                        />
+                      ) : (
+                        "-"
+                      )}
+                    </td>
+
+                    {/* İşlem */}
+                    <td className="py-2 pr-4">
+                      <div className="flex items-center gap-2 whitespace-nowrap">
+                        <button className="px-2 py-1 rounded border" onClick={() => onEdit(r)}>
+                          Düzenle
+                        </button>
+                        <button
+                          className="px-2 py-1 rounded border text-red-600"
+                          onClick={() => onDelete(r.id)}
+                        >
+                          Sil
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
                 </tbody>
               </table>
             </div>
           ) : (
-            <div className="text-sm text-neutral-500">Kayıt yok.</div>
+            <div className="text-sm text-neutral-500">Liste boş.</div>
           )}
         </div>
       </div>
@@ -346,94 +455,203 @@ export default function ProductsAdmin() {
       {open && (
         <div className="fixed inset-0 z-50">
           <div className="absolute inset-0 bg-black/30" onClick={() => setOpen(false)}/>
-          <div className="absolute inset-x-0 bottom-0 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 w-full md:w-[720px] rounded-t-2xl md:rounded-2xl border bg-white shadow-2xl">
+          <div
+            className="absolute inset-x-0 bottom-0 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 w-full md:w-[820px] rounded-t-2xl md:rounded-2xl border bg-white shadow-2xl">
             <div className="p-4 space-y-4 max-h-[90vh] overflow-auto">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">{editing ? "Ürünü Düzenle" : "Yeni Ürün"}</h3>
-                <button className="text-sm text-neutral-600" onClick={() => setOpen(false)}>Kapat</button>
+                <button className="text-sm text-neutral-600" onClick={() => setOpen(false)}>
+                  Kapat
+                </button>
               </div>
 
+              {/* Ürün Adı */}
               <div>
                 <label className="block text-sm font-medium mb-1">Ürün Adı</label>
-                <input className="w-full border rounded-lg px-3 py-2" value={fName} onChange={(e) => setFName(e.target.value)} placeholder="Örn: Fıstıklı lokum - Nut Things"/>
+                <input
+                  className="w-full border rounded-lg px-3 py-2"
+                  placeholder="Örn: Fıstıklı lokum - Nut Things"
+                  value={fName}
+                  onChange={(e) => setFName(e.target.value)}
+                />
               </div>
 
+              {/* Açıklama */}
               <div>
                 <label className="block text-sm font-medium mb-1">Açıklama</label>
-                <textarea className="w-full border rounded-lg px-3 py-2 min-h-[90px]" value={fDesc} onChange={(e) => setFDesc(e.target.value)} />
+                <textarea
+                  rows={3}
+                  className="w-full border rounded-lg px-3 py-2"
+                  placeholder="Kısa ürün açıklaması..."
+                  value={fDesc}
+                  onChange={(e) => setFDesc(e.target.value)}
+                />
               </div>
 
-              {/* Önemli Bilgi (Zengin Metin) */}
-              <div className="mt-4">
+              {/* Önemli Bilgi (Toolbar + Editor) — görseldeki gibi sade */}
+              <div>
                 <label className="block text-sm font-medium mb-1">Önemli Bilgi</label>
-                <div className="flex flex-wrap gap-2 mb-2">
-                  <button type="button" className="px-2 py-1 rounded border" onMouseDown={(e) => { e.preventDefault(); runCmd(() => document.execCommand("bold")); }}>B</button>
-                  <button type="button" className="px-2 py-1 rounded border italic" onMouseDown={(e) => { e.preventDefault(); runCmd(() => document.execCommand("italic")); }}>I</button>
-                  <button type="button" className="px-2 py-1 rounded border underline" onMouseDown={(e) => { e.preventDefault(); runCmd(() => document.execCommand("underline")); }}>U</button>
-                  <select className="px-2 py-1 rounded border" defaultValue="3" onChange={(e) => runCmd(() => document.execCommand("fontSize", false, (e.target as HTMLSelectElement).value))}>
-                    <option value="1">Çok Küçük</option><option value="2">Küçük</option><option value="3">Normal</option><option value="4">Büyük</option><option value="5">Daha Büyük</option><option value="6">Çok Büyük</option><option value="7">En Büyük</option>
+
+                {/* Toolbar (B, I, U + Normal + inherit + renk) */}
+                <div className="mb-2 flex flex-wrap items-center gap-2 text-sm">
+                  <button className="px-2 py-1 border rounded" onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => exec("bold")}>B
+                  </button>
+                  <button className="px-2 py-1 border rounded" onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => exec("italic")}><i>İ</i></button>
+                  <button className="px-2 py-1 border rounded" onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => exec("underline")}><u>U</u></button>
+
+                  <select
+                    className="border rounded px-2 py-1"
+                    defaultValue="16px"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onChange={(e) => applyInlineStyle("fontSize", e.target.value)}
+                  >
+                    {SIZE_OPTIONS.map((o) => (
+                      <option key={o.v} value={o.v}>{o.l}</option>
+                    ))}
                   </select>
-                  <select className="px-2 py-1 rounded border" defaultValue="inherit" onChange={(e) => runCmd(() => document.execCommand("fontName", false, (e.target as HTMLSelectElement).value))}>
-                    {FONT_OPTIONS.map((f, i) => (<option key={`${i}-${f}`} value={f}>{f}</option>))}
+
+                  <select
+                    className="border rounded px-2 py-1"
+                    defaultValue="inherit"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onChange={(e) => applyInlineStyle("fontFamily", e.target.value)}
+                  >
+                    {FAMILY_OPTIONS.map((o) => (
+                      <option key={o.v} value={o.v}>{o.l}</option>
+                    ))}
                   </select>
-                  <input type="color" aria-label="Renk" className="w-10 h-9 border rounded" onChange={(e) => runCmd(() => document.execCommand("foreColor", false, (e.target as HTMLInputElement).value))}/>
+
+                  <input
+                    type="color"
+                    className="border rounded w-10 h-8"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onChange={(e) => applyInlineStyle("color", e.target.value)}
+                  />
                 </div>
-                <div ref={impRef} className="min-h-[120px] border rounded-lg p-3 bg-white prose max-w-none text-left" contentEditable suppressContentEditableWarning dir="ltr" spellCheck={false} style={{unicodeBidi: "plaintext", whiteSpace: "pre-wrap"}} onInput={onEditorInput} />
-                <p className="text-xs text-neutral-500 mt-2">Bu alan üründe açıklamanın altında gösterilir.</p>
+
+                {/* Editor */}
+                <div
+                  ref={impRef}
+                  contentEditable
+                  onInput={onImpChange}
+                  className="min-h-[120px] border rounded-lg px-3 py-2"
+                  placeholder="Üründe öne çıkarılacak önemli bilgiler..."
+                />
+                <p className="mt-1 text-xs text-neutral-500">
+                  Bu alan üründe açıklamanın altında gösterilir.
+                </p>
               </div>
 
+              {/* Görsel + ALT */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">Ana Görsel</label>
-                  <input className="w-full border rounded-lg px-3 py-2" value={fImage} onChange={(e) => setFImage(e.target.value)} placeholder="https://…"/>
-                  <div className="mt-2 flex items-center gap-2">
-                    <input id="file" type="file" accept="image/*" disabled={uploading} onChange={onPickFile}/>
-                    {uploading && <span className="text-xs text-neutral-500">Yükleniyor…</span>}
+                  <input
+                    className="w-full border rounded-lg px-3 py-2"
+                    placeholder="https://…"
+                    value={fImage}
+                    onChange={(e) => setFImage(e.target.value)}
+                  />
+                  <div className="mt-2">
+                    <input type="file" onChange={onPickFile} disabled={uploading}/>
                   </div>
-                  {fImage && (<div className="mt-2"><img src={fImage} alt="" className="h-28 w-40 object-cover rounded border"/></div>)}
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Görsel Alt (SEO)</label>
-                  <input className="w-full border rounded-lg px-3 py-2" value={fAlt} onChange={(e) => setFAlt(e.target.value)} placeholder="Örn: Fıstıklı lokum görseli"/>
+                  <input
+                    className="w-full border rounded-lg px-3 py-2"
+                    placeholder="Örn: Fıstıklı lokum görseli"
+                    value={fAlt}
+                    onChange={(e) => setFAlt(e.target.value)}
+                  />
                 </div>
               </div>
 
-              {/* Çoklu Görseller */}
-              {editing?.id && (<ProductImages productId={editing.id} />)}
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Fiyat + Sıra + Öne Çıkan */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="flex items-center gap-3">
                   <label className="text-sm font-medium">Fiyat (€)</label>
-                  <input type="number" step="0.01" className="w-40 border rounded-lg px-3 py-2" value={fPrice} onChange={(e) => setFPrice(e.target.value === "" ? "" : Number(e.target.value))}/>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className="w-28 border rounded-lg px-2 py-1"
+                    placeholder="0.00"
+                    value={fPrice as any}
+                    onChange={(e) => setFPrice(e.target.value === "" ? "" : Number(e.target.value))}
+                  />
+                </div>
+                <div className="flex items-center gap-3">
+                  <label className="text-sm font-medium">Sıra</label>
+                  <input
+                    type="number"
+                    className="w-24 border rounded-lg px-2 py-1"
+                    placeholder="0"
+                    value={fSort as any}
+                    onChange={(e) => setFSort(e.target.value === "" ? "" : Number(e.target.value))}
+                  />
                 </div>
                 <label className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" checked={fFeatured} onChange={(e) => setFFeatured(e.target.checked)} />
+                  <input type="checkbox" checked={fFeatured} onChange={(e) => setFFeatured(e.target.checked)}/>
                   Öne Çıkan
                 </label>
               </div>
 
+              {/* SEO Title + SEO Description */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">SEO Title</label>
-                  <input className="w-full border rounded-lg px-3 py-2" value={fSeoTitle} onChange={(e) => setFSeoTitle(e.target.value)} placeholder="Örn: Fıstıklı Lokum 250g | Nut Things"/>
+                  <input
+                    className="w-full border rounded-lg px-3 py-2"
+                    placeholder="Örn: Fıstıklı Lokum 250g | Nut Things"
+                    value={fSeoTitle}
+                    onChange={(e) => setFSeoTitle(e.target.value)}
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">SEO Description</label>
-                  <input className="w-full border rounded-lg px-3 py-2" value={fSeoDesc} onChange={(e) => setFSeoDesc(e.target.value)} />
+                  <input
+                    className="w-full border rounded-lg px-3 py-2"
+                    placeholder="Ürün için kısa açıklama…"
+                    value={fSeoDesc}
+                    onChange={(e) => setFSeoDesc(e.target.value)}
+                  />
                 </div>
               </div>
 
+              {/* Çoklu Görseller (varsa) */}
+              {editing?.id && <ProductImages productId={editing.id}/>}
+
+              {/* Kategori seçimi (form) */}
               <div>
                 <label className="block text-sm font-medium mb-1">Kategori</label>
-                <select className="w-full border rounded-lg px-3 py-2" value={fCategoryId} onChange={(e) => setFCategoryId(e.target.value)}>
+                <select
+                  value={fCategoryId}
+                  onChange={(e) => setFCategoryId(e.target.value)}
+                  className="w-full border rounded-lg px-3 py-2"
+                >
                   <option value="">— Seçiniz —</option>
-                  {cats.map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
+                  {cats.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
                 </select>
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
-                <button className="px-3 py-2 rounded-lg border" onClick={() => setOpen(false)}>İptal</button>
-                <button onClick={onSave} disabled={uploading} className="px-4 py-2 rounded-lg bg-neutral-900 text-white hover:bg-neutral-800 disabled:opacity-60">Kaydet</button>
+                <button className="px-3 py-2 rounded-lg border" onClick={() => setOpen(false)}>
+                  İptal
+                </button>
+                <button
+                  onClick={onSave}
+                  disabled={uploading}
+                  className="px-3 py-2 rounded-lg bg-black text-white hover:bg-neutral-800 disabled:opacity-60"
+                >
+                  Kaydet
+                </button>
               </div>
             </div>
           </div>

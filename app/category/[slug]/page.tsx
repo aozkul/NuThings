@@ -81,7 +81,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
     .from("products")
     .select("*")
     .eq("category_id", cat.id)
-    .order("name", { ascending: true });
+    .order("sort_order", { ascending: true }).order("name", { ascending: true });
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-10">
