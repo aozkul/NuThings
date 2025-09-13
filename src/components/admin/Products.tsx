@@ -538,7 +538,7 @@ export default function ProductsAdmin() {
                   contentEditable
                   onInput={onImpChange}
                   className="min-h-[120px] border rounded-lg px-3 py-2"
-                  placeholder="Üründe öne çıkarılacak önemli bilgiler..."
+                  data-placeholder="Üründe öne çıkarılacak önemli bilgiler..."
                 />
                 <p className="mt-1 text-xs text-neutral-500">
                   Bu alan üründe açıklamanın altında gösterilir.
@@ -657,6 +657,14 @@ export default function ProductsAdmin() {
           </div>
         </div>
       )}
+      {/* CSS: contentEditable placeholder */}
+      <style jsx>{`
+        [contenteditable][data-placeholder]:empty:before {
+          content: attr(data-placeholder);
+          color: #9ca3af; /* Tailwind: text-neutral-400 */
+          pointer-events: none;
+        }
+      `}</style>
     </div>
   );
 }
