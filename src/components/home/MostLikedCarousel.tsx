@@ -28,7 +28,7 @@ function formatEUR(n?: number | null) {
 
 export default function MostLikedCarousel() {
   const {messages} = useI18n();
-  const T = (k: "most_liked_title", fb: string) =>
+  const T = (k: "most_liked_title" | "featured_badge", fb: string) =>
     ((messages as any)?.home?.[k] as string) ?? fb;
 
   const [items, setItems] = useState<P[]>([]);

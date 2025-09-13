@@ -25,7 +25,7 @@ function formatEUR(n?: number | null) {
 
 export default function FeaturedCarousel() {
   const {messages} = useI18n();
-  const T = (k: "featured_title" | "featured_badge", fb: string) =>
+  const T = (k: "featured_title" | "featured_badge" | "most_liked_title", fb: string) =>
     ((messages as any)?.home?.[k] as string) ?? fb;
 
   const [items, setItems] = useState<FP[]>([]);
