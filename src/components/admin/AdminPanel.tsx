@@ -1,5 +1,7 @@
 "use client";
 import {useEffect, useState} from "react";
+import Link from "next/link";
+import {usePathname} from "next/navigation";
 import {supabase} from "@/src/lib/supabaseClient";
 import AdminOverview from "@/src/components/admin/Overview";
 import AdminSettings from "@/src/components/admin/Settings";
@@ -7,20 +9,26 @@ import AdminCategories from "@/src/components/admin/Categories";
 import AdminProducts from "@/src/components/admin/Products";
 import {GridIcon} from "@/src/components/Icons";
 
-type Tab = "overview" | "categories" | "products" | "settings" | "newsletter";
+type Tab = "overview" | "categories" | "products" | "settings";
 
 const tabs: { key: Tab; label: string; emoji: string }[] = [
   {key: "overview", label: "Genel Bakış", emoji: "📊"},
   {key: "categories", label: "Kategoriler", emoji: "🗂️"},
   {key: "products", label: "Ürünler", emoji: "🧺"},
   {key: "settings", label: "Ayarlar", emoji: "⚙️"},
-  {key: "newsletter", label: "Newsletter", emoji: "✉️"}, // ✅ yeni sekme
+];
+
+// Sidebar’daki harici (route) linkler
+const newsletterNav = [
+  {href: "/admin/newsletter", label: "Aboneler", emoji: "📧"},
+  {href: "/admin/newsletter/campaign", label: "Kampanyalar", emoji: "📢"},
 ];
 
 export default function AdminPanel() {
   const [session, setSession] = useState<any>(null);
   const [tab, setTab] = useState<Tab>("overview");
   const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname();
 
   // auth
   useEffect(() => {
@@ -122,32 +130,12 @@ export default function AdminPanel() {
         return <AdminProducts/>;
       case "settings":
         return <AdminSettings/>;
-      case "newsletter":
-        return (
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold">Newsletter</h2>
-            <div className="flex gap-3">
-              <a
-                href="/admin/newsletter"
-                className="rounded border px-3 py-2 text-sm hover:bg-neutral-50"
-              >
-                Aboneler
-              </a>
-              <a
-                href="/admin/newsletter/campaign"
-                className="rounded bg-neutral-900 text-white px-3 py-2 text-sm"
-              >
-                Kampanya Gönder
-              </a>
-            </div>
-          </div>
-        );
     }
   };
 
-  // Sidebar item
+  // Sidebar item (iç sekmeler)
   const Item = ({t}: { t: (typeof tabs)[number] }) => {
-    const active = tab === t.key;
+    const active = tab === t.key && !pathname.startsWith("/admin/newsletter");
     return (
       <button
         onClick={() => {
@@ -163,6 +151,25 @@ export default function AdminPanel() {
         <span className="text-base select-none">{t.emoji}</span>
         <span className="text-sm font-medium">{t.label}</span>
       </button>
+    );
+  };
+
+  // Sidebar item (harici linkler)
+  const LinkItem = ({href, label, emoji}: { href: string; label: string; emoji: string }) => {
+    const active = pathname === href || pathname.startsWith(href + "/");
+    return (
+      <Link
+        href={href}
+        className={
+          "w-full text-left flex items-center gap-3 px-3 py-2 rounded-xl border " +
+          (active ? "bg-black text-white border-black" : "hover:bg-neutral-50")
+        }
+        aria-current={active ? "page" : undefined}
+        onClick={() => setMenuOpen(false)}
+      >
+        <span className="text-base select-none">{emoji}</span>
+        <span className="text-sm font-medium">{label}</span>
+      </Link>
     );
   };
 
@@ -183,12 +190,7 @@ export default function AdminPanel() {
                 className="md:hidden inline-flex items-center gap-2 rounded-xl border px-3 py-2"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-                  <path
-                    d="M4 6h16M4 12h16M4 18h16"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
+                  <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
                 Menü
               </button>
@@ -208,11 +210,24 @@ export default function AdminPanel() {
                 {tabs.map((t) => (
                   <Item key={t.key} t={t}/>
                 ))}
+
+                {/* Ayırıcı */}
+                <div className="my-3 h-px bg-neutral-200"/>
+
+                {/* Newsletter grubu */}
+                {newsletterNav.map((n) => (
+                  <LinkItem key={n.href} href={n.href} label={n.label} emoji={n.emoji}/>
+                ))}
               </div>
             </aside>
 
             {/* Content */}
-            <section className="min-h-[60vh]">{render()}</section>
+            <section className="min-h-[60vh]">
+              {/* İç sekmeler (overview/categories/products/settings) için burada render ediyoruz.
+                  Newsletter sayfalarına gidildiğinde bu component yine layout içinde kalır,
+                  ilgili route kendi içeriğini gösterir. */}
+              {!pathname.startsWith("/admin/newsletter") && render()}
+            </section>
           </div>
         </div>
       </div>
@@ -225,6 +240,10 @@ export default function AdminPanel() {
             <div className="mx-auto max-w-md space-y-2">
               {tabs.map((t) => (
                 <Item key={t.key} t={t}/>
+              ))}
+              <div className="my-2 h-px bg-neutral-200"/>
+              {newsletterNav.map((n) => (
+                <LinkItem key={n.href} href={n.href} label={n.label} emoji={n.emoji}/>
               ))}
             </div>
           </div>

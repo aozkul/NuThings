@@ -20,5 +20,10 @@ export default async function CampaignPage() {
     return <div className="p-6 text-red-600">Hata: {error.message}</div>;
   }
 
-  return <ClientCampaign products={(data as any[]) || []}/>;
+  return (
+    <div className="space-y-4">
+      <div className="mb-2"><h2 className="text-lg font-semibold">Kampanya Gönderimi</h2></div>
+      <ClientCampaign products={(data as any[]) || []} />
+    </div>
+  );
 }
