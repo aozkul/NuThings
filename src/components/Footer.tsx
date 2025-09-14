@@ -52,7 +52,7 @@ export default async function Footer() {
         </div>
 
         {/* Hızlı Bağlantılar */}
-        <div className="flex flex-col items-center text-center">
+        <div>
           <h4 className="font-medium mb-3">Hızlı Bağlantılar</h4>
           <ul className="space-y-2 text-sm">
             <li><Link href="/" className="hover:underline">Ana Sayfa</Link></li>
@@ -63,7 +63,7 @@ export default async function Footer() {
         </div>
 
         {/* İletişim */}
-        <div className="flex flex-col items-center text-center">
+        <div>
           <h4 className="font-medium mb-3">İletişim</h4>
           <ul className="space-y-3 text-sm">
             <li className="flex items-center gap-3">
@@ -87,7 +87,7 @@ export default async function Footer() {
         </div>
 
         {/* Sosyal */}
-        <div className="flex flex-col items-center text-center">
+        <div>
           <h4 className="font-medium mb-3">Takipte Kalın</h4>
           <div className="flex gap-3">
             <a

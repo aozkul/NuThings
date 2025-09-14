@@ -18,7 +18,7 @@ export default async function NewsletterAdmin() {
     ].join("\n");
 
     return (
-        <div className="p-6">
+        <div className="p-6">\n      <a href="/admin" className="inline-block mb-4 text-sm text-blue-600 hover:underline">⬅ Admin Paneline Dön</a>
             <h1 className="text-xl font-semibold mb-4">Newsletter Aboneleri</h1>
             <a className="text-sm underline" href={`data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`}
                download="newsletter.csv">

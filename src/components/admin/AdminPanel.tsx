@@ -1,19 +1,20 @@
 "use client";
-import { useEffect, useState } from "react";
-import { supabase } from "@/src/lib/supabaseClient";
+import {useEffect, useState} from "react";
+import {supabase} from "@/src/lib/supabaseClient";
 import AdminOverview from "@/src/components/admin/Overview";
 import AdminSettings from "@/src/components/admin/Settings";
 import AdminCategories from "@/src/components/admin/Categories";
 import AdminProducts from "@/src/components/admin/Products";
-import { GridIcon } from "@/src/components/Icons";
+import {GridIcon} from "@/src/components/Icons";
 
-type Tab = "overview" | "categories" | "products" | "settings";
+type Tab = "overview" | "categories" | "products" | "settings" | "newsletter";
 
 const tabs: { key: Tab; label: string; emoji: string }[] = [
-  { key: "overview",   label: "Genel Bakış", emoji: "📊" },
-  { key: "categories", label: "Kategoriler", emoji: "🗂️" },
-  { key: "products",   label: "Ürünler",     emoji: "🧺" },
-  { key: "settings",   label: "Ayarlar",     emoji: "⚙️" },
+  {key: "overview", label: "Genel Bakış", emoji: "📊"},
+  {key: "categories", label: "Kategoriler", emoji: "🗂️"},
+  {key: "products", label: "Ürünler", emoji: "🧺"},
+  {key: "settings", label: "Ayarlar", emoji: "⚙️"},
+  {key: "newsletter", label: "Newsletter", emoji: "✉️"}, // ✅ yeni sekme
 ];
 
 export default function AdminPanel() {
@@ -23,14 +24,14 @@ export default function AdminPanel() {
 
   // auth
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
+    supabase.auth.getSession().then(({data}) => setSession(data.session));
+    const {data: sub} = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
     return () => {
       sub.subscription.unsubscribe();
     };
   }, []);
 
-  // Login form state
+  // login form state
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -41,10 +42,10 @@ export default function AdminPanel() {
     setMsg(null);
     try {
       if (password) {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const {error} = await supabase.auth.signInWithPassword({email, password});
         if (error) throw error;
       } else {
-        const { error } = await supabase.auth.signInWithOtp({
+        const {error} = await supabase.auth.signInWithOtp({
           email,
           options: {
             emailRedirectTo:
@@ -68,12 +69,12 @@ export default function AdminPanel() {
   if (!session) {
     return (
       <div className="relative">
-        <div className="bg-gradient-to-b from-neutral-50 to-transparent h-28" />
+        <div className="bg-gradient-to-b from-neutral-50 to-transparent h-28"/>
         <div className="container-tight -mt-20 mb-10">
           <div className="rounded-2xl shadow-sm border bg-white p-6 max-w-md mx-auto">
             <div className="flex items-center gap-3 mb-4">
               <div className="h-10 w-10 rounded-xl grid place-items-center border">
-                <GridIcon className="h-5 w-5" />
+                <GridIcon className="h-5 w-5"/>
               </div>
               <div>
                 <h1 className="text-xl font-semibold tracking-tight">Admin Giriş</h1>
@@ -114,18 +115,38 @@ export default function AdminPanel() {
   const render = () => {
     switch (tab) {
       case "overview":
-        return <AdminOverview />;
+        return <AdminOverview/>;
       case "categories":
-        return <AdminCategories />;
+        return <AdminCategories/>;
       case "products":
-        return <AdminProducts />;
+        return <AdminProducts/>;
       case "settings":
-        return <AdminSettings />;
+        return <AdminSettings/>;
+      case "newsletter":
+        return (
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold">Newsletter</h2>
+            <div className="flex gap-3">
+              <a
+                href="/admin/newsletter"
+                className="rounded border px-3 py-2 text-sm hover:bg-neutral-50"
+              >
+                Aboneler
+              </a>
+              <a
+                href="/admin/newsletter/campaign"
+                className="rounded bg-neutral-900 text-white px-3 py-2 text-sm"
+              >
+                Kampanya Gönder
+              </a>
+            </div>
+          </div>
+        );
     }
   };
 
   // Sidebar item
-  const Item = ({ t }: { t: (typeof tabs)[number] }) => {
+  const Item = ({t}: { t: (typeof tabs)[number] }) => {
     const active = tab === t.key;
     return (
       <button
@@ -148,7 +169,7 @@ export default function AdminPanel() {
   return (
     <div className="relative">
       {/* Header */}
-      <div className="bg-gradient-to-b from-neutral-50 to-transparent h-32" />
+      <div className="bg-gradient-to-b from-neutral-50 to-transparent h-32"/>
       <div className="container-tight -mt-24">
         <div className="rounded-2xl border bg-white shadow-sm p-4 md:p-6">
           <div className="flex items-center justify-between gap-3 mb-4 md:mb-6">
@@ -185,7 +206,7 @@ export default function AdminPanel() {
             <aside className="hidden md:block">
               <div className="space-y-2">
                 {tabs.map((t) => (
-                  <Item key={t.key} t={t} />
+                  <Item key={t.key} t={t}/>
                 ))}
               </div>
             </aside>
@@ -199,11 +220,11 @@ export default function AdminPanel() {
       {/* Mobile drawer */}
       {menuOpen && (
         <div className="md:hidden">
-          <div className="fixed inset-0 bg-black/30" onClick={() => setMenuOpen(false)} />
+          <div className="fixed inset-0 bg-black/30" onClick={() => setMenuOpen(false)}/>
           <div className="fixed inset-x-0 bottom-0 rounded-t-2xl border bg-white p-4 shadow-2xl">
             <div className="mx-auto max-w-md space-y-2">
               {tabs.map((t) => (
-                <Item key={t.key} t={t} />
+                <Item key={t.key} t={t}/>
               ))}
             </div>
           </div>
