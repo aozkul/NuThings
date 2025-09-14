@@ -12,8 +12,8 @@ interface ProductRow {
 
 export default function ClientCampaign({products}: { products: ProductRow[] }) {
   const [selected, setSelected] = useState<string[]>([]);
-  const [subject, setSubject] = useState("NuThings'de Seçtiğimiz Yeni Ürünler");
-  const [intro, setIntro] = useState("Sizin için seçtiğimiz yeni ürünleri keşfedin!");
+  const [subject, setSubject] = useState("Unsere Auswahl an neuen Produkten bei NuThings");
+  const [intro, setIntro] = useState("Entdecken Sie die neuen Produkte, die wir für Sie ausgewählt haben!");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
 

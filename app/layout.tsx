@@ -30,7 +30,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
 
   return (
     <html lang={locale}>
-    <body>
+    <body className="overflow-x-clip">
     <I18nProvider locale={locale} messages={messages}>
       <DOMTranslate/>
       <Navbar/>

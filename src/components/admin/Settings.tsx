@@ -156,28 +156,28 @@ async function inferBucketNameFromDb(): Promise<string | null> {
 /** ---------- Component ---------- */
 export default function AdminSettings() {
 // Load Google Fonts for admin preview (one consolidated request)
-useEffect(() => {
-  try {
-    const id = "admin-google-fonts";
-    const weights = "wght@300;400;500;600;700;800;900";
-    const famParams = Object.keys(GOOGLE_FONT_FAMILIES)
-      .map((name) => `family=${encodeURIComponent(name)}:${weights}`)
-      .join("&");
-    const href = `https://fonts.googleapis.com/css2?${famParams}&display=swap`;
+  useEffect(() => {
+    try {
+      const id = "admin-google-fonts";
+      const weights = "wght@300;400;500;600;700;800;900";
+      const famParams = Object.keys(GOOGLE_FONT_FAMILIES)
+        .map((name) => `family=${encodeURIComponent(name)}:${weights}`)
+        .join("&");
+      const href = `https://fonts.googleapis.com/css2?${famParams}&display=swap`;
 
-    let link = document.getElementById(id) as HTMLLinkElement | null;
-    if (!link) {
-      link = document.createElement("link");
-      link.id = id;
-      link.rel = "stylesheet";
-      document.head.appendChild(link);
+      let link = document.getElementById(id) as HTMLLinkElement | null;
+      if (!link) {
+        link = document.createElement("link");
+        link.id = id;
+        link.rel = "stylesheet";
+        document.head.appendChild(link);
+      }
+      if (link.href !== href) link.href = href;
+    } catch (err) {
+      // Non-fatal: if Google Fonts fail to load, local fallbacks still work
+      console.warn("Google Fonts preload failed:", err);
     }
-    if (link.href !== href) link.href = href;
-  } catch (err) {
-    // Non-fatal: if Google Fonts fail to load, local fallbacks still work
-    console.warn("Google Fonts preload failed:", err);
-  }
-}, []);
+  }, []);
 
   const [rows, setRows] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
@@ -636,9 +636,9 @@ useEffect(() => {
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <h2 className="text-xl font-semibold">Ayarlar</h2>
-              <span className="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
-                v3 (px sizes + dropdown align)
-              </span>
+              {/*<span className="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200">*/}
+              {/*  v3 (px sizes + dropdown align)*/}
+              {/*</span>*/}
               {bucketName && (
                 <span className="text-xs px-2 py-1 rounded-full bg-neutral-100 border">
                   bucket: <b>{bucketName}</b>
