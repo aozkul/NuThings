@@ -1,4 +1,4 @@
-import {NextRequest, NextResponse} from "next/server";
+import {NextResponse} from "next/server";
 import {createClient} from "@supabase/supabase-js";
 
 export const runtime = "nodejs";
@@ -8,22 +8,21 @@ const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
-export async function GET(req: NextRequest, ctx: { params: { id: string } }) {
-    const id = ctx.params.id;
+// ✅ İmza: (request: Request, { params })
+export async function GET(_req: Request, {params}: { params: { id: string } }) {
+    const id = params.id;
 
-    // Ürünü ID ile bul → slug'ı getir
+    // ID ile ürünü bul ve slug'a yönlendir
     const {data, error} = await supabase
         .from("products")
         .select("slug")
         .eq("id", id)
         .single();
 
-    if (error || !data) {
+    if (error || !data?.slug) {
         return NextResponse.json({ok: false, message: "Product not found"}, {status: 404});
     }
 
-    // /products/[slug] sayfasına yönlendir
     const target = `/products/${encodeURIComponent(data.slug)}`;
-
-    return NextResponse.redirect(new URL(target, req.url), 302);
+    return NextResponse.redirect(target, 302);
 }
