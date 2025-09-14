@@ -1,3 +1,4 @@
+// app/product/[id]/route.ts
 import {NextResponse} from "next/server";
 import {createClient} from "@supabase/supabase-js";
 
@@ -5,14 +6,12 @@ export const runtime = "nodejs";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-
 const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
-// ✅ İmza: (request: Request, { params })
+// Doğru imza: (request: Request, { params })
 export async function GET(_req: Request, {params}: { params: { id: string } }) {
     const id = params.id;
 
-    // ID ile ürünü bul ve slug'a yönlendir
     const {data, error} = await supabase
         .from("products")
         .select("slug")
