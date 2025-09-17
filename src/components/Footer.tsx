@@ -38,15 +38,15 @@ export default async function Footer() {
 
   return (
     <footer className="border-t mt-12 bg-white">
-      {/* tek satıra sığması için 6 kolon ve items-start */}
-      <div className="container-tight py-10 grid md:grid-cols-6 gap-6 items-start">
+      {/* Mobil -> tek kolon; sm -> 2; md -> 6 kolon. Daha ferah boşluklar ve taşma kırma. */}
+      <div className="container-tight py-8 sm:py-10 grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-6 items-start">
         {/* Brand */}
-        <div className="space-y-3">
+        <div className="space-y-3 min-w-0">
           <div className="flex items-center gap-2">
             <img src="/logo.jpg" alt="Nut Things" className="h-10 w-10 rounded-full object-cover"/>
             <span className="font-semibold">NuThings</span>
           </div>
-          <p className="text-sm text-neutral-700">
+          <p className="text-sm text-neutral-700 leading-relaxed break-words hyphens-auto">
             Doğadan sofranıza; lokum, kuruyemiş ve daha fazlası.
           </p>
         </div>
@@ -63,16 +63,16 @@ export default async function Footer() {
         </div>
 
         {/* İletişim */}
-        <div>
+        <div className="min-w-0">
           <h4 className="font-medium mb-3">İletişim</h4>
           <ul className="space-y-3 text-sm">
-            <li className="flex items-center gap-3">
+            <li className="flex items-center gap-3 min-w-0">
               <IconBadge bg="bg-sky-50" color="text-sky-600" title="E-posta">
                 <MailIcon className="h-4 w-4"/>
               </IconBadge>
               <a
                 href={`mailto:${emailAddr}`}
-                className="hover:underline whitespace-nowrap text-sm"
+                className="hover:underline break-words"
               >
                 {emailAddr}
               </a>
@@ -89,12 +89,13 @@ export default async function Footer() {
         {/* Sosyal */}
         <div>
           <h4 className="font-medium mb-3">Takipte Kalın</h4>
-          <div className="flex gap-3">
+          {/* Sarabilir ve her öğe dokunmatik için yeterince büyük */}
+          <div className="flex flex-wrap items-center gap-3">
             <a
               href={instagramUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center rounded-xl border px-2 py-2 hover:bg-neutral-50"
+              className="inline-flex items-center justify-center rounded-xl border px-3 py-3 min-h-[44px] min-w-[44px] hover:bg-neutral-50"
               aria-label="Instagram" title="Instagram"
             >
               <IconBadge bg="bg-fuchsia-50" color="text-fuchsia-600">
@@ -105,7 +106,7 @@ export default async function Footer() {
               href={twitterUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center rounded-xl border px-2 py-2 hover:bg-neutral-50"
+              className="inline-flex items-center justify-center rounded-xl border px-3 py-3 min-h-[44px] min-w-[44px] hover:bg-neutral-50"
               aria-label="Twitter / X" title="Twitter / X"
             >
               <IconBadge bg="bg-sky-50" color="text-sky-600">
@@ -115,8 +116,8 @@ export default async function Footer() {
           </div>
         </div>
 
-        {/* Newsletter – sosyalın yanında, iki kolon */}
-        <div className="md:col-span-2">
+        {/* Newsletter – içerik aynı, sadece kolon davranışı: sm'de tek, md'de 2 kolon kaplar */}
+        <div className="sm:col-span-2 md:col-span-2">
           <NewsletterBox compact/>
         </div>
       </div>
