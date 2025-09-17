@@ -7,8 +7,9 @@ import Footer from "@/src/components/Footer";
 import {cookies} from "next/headers";
 import {I18nProvider} from "@/src/i18n/provider";
 import DOMTranslate from "@/src/i18n/DOMTranslate";
+import GoogleAnalytics from "@/src/components/GoogleAnalytics";
+import PageViewTracker from "@/src/components/PageViewTracker"; // opsiyonel
 
-// Next 15: bu segment her istekte yeniden render edilsin
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
@@ -37,6 +38,10 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
       {props.children}
       <Footer/>
     </I18nProvider>
+
+    {/* Analytics */}
+    <GoogleAnalytics/>
+    <PageViewTracker/>
     </body>
     </html>
   );
